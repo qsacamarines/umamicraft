@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "928601318465",
+    "project_id": "umami-craft",
+    "storage_bucket": "umami-craft.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928601318465:android:54ef827db22f109b5812c0",
+        "android_client_info": {
+          "package_name": "com.grouptwo.umamicraft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbRIaq0cNjTXeKqrynLdVm0rOqH7RDADE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

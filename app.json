@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "umamicraft",
+    "slug": "umamicraft",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo-maroon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-umami.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo-maroon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/logo-maroon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
