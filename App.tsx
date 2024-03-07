@@ -9,9 +9,9 @@ import Onboarding2 from './src/Onboarding2'; // Import the Onboarding2 component
 import Login from './src/Login'; // Import the Login component
 import Register from './src/Register'; // Import the Register component
 import HomeScreen from "./src/Home"; // Import the Register component
-import RecipePage from "./src/oneRecipePage"; // Import the Register component
+import RecipePage from "./src/oneRecipePage"; // Import the Recipe component
 import ProfileScreen from "./src/Profile"; // Import the Profile component
-import MoreScreen from "./src/More"; // Import the Home component
+import MoreScreen from "./src/More"; // Import the More component
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
