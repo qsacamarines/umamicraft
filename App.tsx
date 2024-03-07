@@ -9,12 +9,14 @@ import Onboarding2 from './src/Onboarding2'; // Import the Onboarding2 component
 import Login from './src/Login'; // Import the Login component
 import Register from './src/Register'; // Import the Register component
 import HomeScreen from "./src/Home";
+import RecipePage from "./src/oneRecipePage";
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+
 
 function Home() {
   return (
@@ -24,9 +26,7 @@ function Home() {
 
 function Recipes() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Recipes!</Text>
-    </View>
+    <RecipePage />
   );
 }
 

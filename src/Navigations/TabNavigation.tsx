@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from "../Home";
-import Recipes from "../Recipes";
+import RecipePage from "../oneRecipePage";
 import Profile from "../Profile";
 import Favorites from "../Favorites";
 import More from "../More";
@@ -36,13 +36,13 @@ export default function TabNavigation() {
                 }}
               />
               <Tab.Screen
-                name="Recipes"
-                component={Recipes}
+                name="Recipe"
+                component={RecipePage}
                 options={{
                   tabBarLabel: ({ color }) => (
                     <Text style = {{ color:color, fontSize:12, marginTop:-7}}>Recipes</Text>),
                     tabBarIcon: ({ color, size }) => (
-                    <FontAwesome name="cutlery" size={size} color={color} />
+                    <FontAwesome5 name="book" size={size} color={color} />
                   ),
                 }}
               />

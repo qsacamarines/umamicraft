@@ -7,6 +7,7 @@ import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   apiKey: "AIzaSyBRuhE5aznWAD-YGtu0xD4PYc2Z_zy__0c",
   authDomain: "umami-craft-155bf.firebaseapp.com",
+  databaseURL: "https://umami-craft-155bf-default-rtdb.firebaseio.com",
   projectId: "umami-craft-155bf",
   storageBucket: "umami-craft-155bf.appspot.com",
   messagingSenderId: "222702959221",
