@@ -17,7 +17,7 @@ const AppLoader: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <LottieView
-        source={require('./assets/loading-animation-2.json')}
+        source={require('../assets/loading-animation-2.json')}
         autoPlay
         loop
         style={styles.animation}

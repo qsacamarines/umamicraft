@@ -2,14 +2,16 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import LoadingSplash from './src/LoadingSplash'; // Import the LoadingSplash component
+import LoadingSplash from './src/Splash'; // Import the LoadingSplash component
 import Onboarding0 from './src/Onboarding0'; // Import the Onboarding0 component
 import Onboarding1 from './src/Onboarding1' // Import the Onboarding1 component
 import Onboarding2 from './src/Onboarding2'; // Import the Onboarding2 component
 import Login from './src/Login'; // Import the Login component
 import Register from './src/Register'; // Import the Register component
-import HomeScreen from "./src/Home";
-import RecipePage from "./src/oneRecipePage";
+import HomeScreen from "./src/Home"; // Import the Register component
+import RecipePage from "./src/oneRecipePage"; // Import the Register component
+import ProfileScreen from "./src/Profile"; // Import the Profile component
+import MoreScreen from "./src/More"; // Import the Home component
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
@@ -32,9 +34,7 @@ function Recipes() {
 
 function Profile() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Profile!</Text>
-    </View>
+    <ProfileScreen />
   );
 }
 
@@ -48,9 +48,7 @@ function Favorites() {
 
 function More() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>More!</Text>
-    </View>
+    <MoreScreen />
   );
 }
 
@@ -141,6 +139,7 @@ const App: React.FC = () => {
     "HiraKakuPro-W3": require("./assets/fonts/HiraKakuPro-W3.otf"),
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
+    "Candal-Regular": require("./assets/fonts/Candal-Regular.ttf")
   });
 
   if (!fontsLoaded && !error) {
