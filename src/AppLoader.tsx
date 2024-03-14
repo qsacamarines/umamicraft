@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { NavigationScreenProp } from 'react-navigation';
 import Onboarding0 from './Onboarding0';
+
 interface Props {
   navigation: NavigationScreenProp<any, any>
 }

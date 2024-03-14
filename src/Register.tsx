@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, TextInput, StyleSheet, Image, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import firebaseApp from '.././firebase'; // Import the Firebase app instance
 
@@ -138,6 +139,7 @@ const RegisterPage: React.FC = () => {
         </View>
 
         <View style={styles.input1}>
+          <Icon name="user" style={styles.icon} />
           <TextInput
           value={name}
           onChangeText={setName}
@@ -150,6 +152,7 @@ const RegisterPage: React.FC = () => {
         </Text>
 
         <View style={styles.input1}>
+        <Icon name="envelope" style={styles.icon} />
           <TextInput
           value={email}
           onChangeText={setEmail}
@@ -162,6 +165,7 @@ const RegisterPage: React.FC = () => {
         </Text>
 
         <View style={styles.input1}>
+          <Icon name="user-circle" style={styles.icon} />
           <TextInput
           value={username}
           onChangeText={setUsername}
@@ -174,6 +178,7 @@ const RegisterPage: React.FC = () => {
         </Text>
         
         <View style={styles.input1}>
+          <Icon name="lock" style={styles.icon} />
           <TextInput
           value={password}
           onChangeText={setPassword}
@@ -187,6 +192,7 @@ const RegisterPage: React.FC = () => {
         </Text>
 
         <View style={styles.input2}>
+          <Icon name="lock" style={styles.icon} />
           <TextInput
           value={confirmPassword}
           onChangeText={setConfirmPassword}
@@ -224,6 +230,7 @@ const styles = StyleSheet.create({
   },
   icons: {
     flexDirection: 'row', 
+    justifyContent: 'center',
     marginTop: 20, 
     marginBottom: 20 
   },
@@ -255,12 +262,20 @@ const styles = StyleSheet.create({
     borderBottomColor: 'white',
     marginTop: 20
   },
+  icon: {
+    marginTop: 10,
+    marginLeft: 20,
+    fontSize: 20,
+    width: 22,
+    textAlign: 'center',
+    color: 'white'
+  },
   textinput: {
     width: '90%', 
+    marginLeft: 10,
     fontSize: 15, 
     paddingTop: 5, 
     paddingBottom: 5, 
-    paddingLeft: 40, 
     color: 'white'
   },
   button: {
