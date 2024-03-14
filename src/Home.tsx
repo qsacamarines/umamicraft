@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     height: 280,
   },
   cardPosition: {
-    left: 10,
+    left: 9,
     position: "absolute",
   },
   cardChild: {
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.basicRegular,
   },
   ramenImg: {
-    left: 11,
+    left: 10,
     width: 393,
     height: 262,
     top: 0,
