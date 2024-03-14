@@ -3,7 +3,7 @@ export const FontFamily = {
     didactGothicRegular: "DidactGothic-Regular",
     archivoBlackRegular: "ArchivoBlack-Regular",
     orelegaOneRegular: "OrelegaOne-Regular",
-    beVietnam: "Be Vietnam",
+    beVietnam: "BeVietnamPro-Regular",
     basicRegular: "Basic-Regular",
     interMedium: "Inter-Medium",
     hiraKakuStdNW8: "HiraKakuStdN-W8",

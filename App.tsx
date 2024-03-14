@@ -138,7 +138,8 @@ const App: React.FC = () => {
     "HiraKakuPro-W3": require("./assets/fonts/HiraKakuPro-W3.otf"),
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
-    "Candal-Regular": require("./assets/fonts/Candal-Regular.ttf")
+    "Candal-Regular": require("./assets/fonts/Candal-Regular.ttf"),
+    "BeVietnam": require("./assets/fonts/BeVietnamPro-Regular.ttf")
   });
 
   if (!fontsLoaded && !error) {
