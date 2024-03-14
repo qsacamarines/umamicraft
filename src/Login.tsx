@@ -115,7 +115,7 @@ const LoginPage: React.FC = () => {
         {/* "Or login with..." text */}
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 30}}>
           <View style={{flex: 1, height: 1, backgroundColor: '#841D06', marginHorizontal: 5 }} />
-          <Text style={{marginHorizontal: 10}}>Or log in with...</Text>
+          <Text style={{marginHorizontal: 10, fontFamily: FontFamily.poppinsRegular}}>Or log in with...</Text>
           <View style={{flex: 1, height: 1, backgroundColor: '#841D06', marginHorizontal: 5 }} />
         </View>
 
@@ -135,12 +135,12 @@ const LoginPage: React.FC = () => {
         </View>
 
         <View style={{alignItems: 'center'}}>
-          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#841D06', letterSpacing: 2 }}>Forgot Password?</Text>
+          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#841D06', letterSpacing: 2, fontFamily: FontFamily.poppinsRegular }}>Forgot Password?</Text>
         </View>
         
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10}}>
-          <Text style={{color: 'black'}}>Don't have an account yet?</Text>
-          <Text style={{color: '#841D06'}} onPress={handleRegister}> Register</Text>
+          <Text style={{color: 'black', fontFamily: FontFamily.didactGothicRegular}}>Don't have an account yet?</Text>
+          <Text style={{color: '#841D06', fontFamily: FontFamily.didactGothicRegular}} onPress={handleRegister}> Register</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   },
   textinput: {
     width: '90%', 
+    fontFamily: FontFamily.didactGothicRegular,
     marginLeft: 10,
     fontSize: 20, 
     paddingTop: 10, 
@@ -204,14 +205,14 @@ const styles = StyleSheet.create({
     padding: 10, width: '70%', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    height: 50, 
+    height: 45, 
     borderRadius: 20, 
     backgroundColor: '#841D06'
   },
   buttontext: {
-    color: 'white', 
-    fontSize: 20, 
-    fontWeight: 'bold'
+    color: 'white',
+    fontFamily: FontFamily.poppinsRegular,
+    fontSize: 20
   }
 });
 

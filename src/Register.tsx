@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, TextInput, StyleSheet, Image, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { Color, FontFamily } from "../GlobalStyles";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import firebaseApp from '.././firebase'; // Import the Firebase app instance
@@ -118,7 +119,7 @@ const RegisterPage: React.FC = () => {
         <View style={{  alignItems: 'center' }}>
           <Image source={require('../assets/ramen.png')} style={{ paddingTop: 20, width: 200, height: 200 }} />
           
-          <Text style={{ fontWeight: 'bold', color: 'white', fontSize: 35 }}>SIGN UP</Text>
+          <Text style={styles.signup}>SIGN UP</Text>
 
           {/* Google, Facebook, and Twitter icons */}
           <View style={styles.icons}>
@@ -135,7 +136,7 @@ const RegisterPage: React.FC = () => {
             </View>
           </View>
 
-          <Text style={{ fontWeight: 'bold', color: 'white', marginBottom: 20 }}>Or sign up with</Text>
+          <Text style={{ color: 'white', fontFamily: FontFamily.didactGothicRegular }}>Or sign up with</Text>
         </View>
 
         <View style={styles.input1}>
@@ -212,8 +213,8 @@ const RegisterPage: React.FC = () => {
         </View>
 
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20}}>
-          <Text style={{color: 'white'}}>Already a member?</Text>
-          <Text style={{color: '#FECC81'}} onPress={handleLogin}> Login</Text>
+          <Text style={{color: 'white', fontFamily: FontFamily.didactGothicRegular}}>Already a member?</Text>
+          <Text style={{color: '#FECC81', fontFamily: FontFamily.didactGothicRegular}} onPress={handleLogin}> Login</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -227,6 +228,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#841D06',
     padding: 30
+  },
+  signup: {
+    fontSize: 40, 
+    color: 'white',
+    fontFamily: FontFamily.archivoBlackRegular
   },
   icons: {
     flexDirection: 'row', 
@@ -272,6 +278,7 @@ const styles = StyleSheet.create({
   },
   textinput: {
     width: '90%', 
+    fontFamily: FontFamily.didactGothicRegular,
     marginLeft: 10,
     fontSize: 15, 
     paddingTop: 5, 
@@ -283,18 +290,20 @@ const styles = StyleSheet.create({
     width: '70%', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    height: 50, 
+    height: 45, 
     borderRadius: 20, 
     backgroundColor: 'white',
     marginTop: 30
   },
   buttontext: {
     color: '#841D06', 
+    fontFamily: FontFamily.poppinsRegular,
     fontSize: 20, 
     fontWeight: 'bold'
   },
   errorText: {
     paddingLeft: 20,
+    fontFamily: FontFamily.poppinsRegular,
     color: 'red',
     textAlign: 'left',
     marginTop: 10
