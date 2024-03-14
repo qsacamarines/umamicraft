@@ -11,6 +11,7 @@ import Register from './src/Register'; // Import the Register component
 import HomeScreen from "./src/Home"; // Import the Register component
 import RecipePage from "./src/oneRecipePage"; // Import the Recipe component
 import ProfileScreen from "./src/Profile"; // Import the Profile component
+import FavoritesPage from "./src/Favorites"; // Import the Favorites component
 import MoreScreen from "./src/More"; // Import the More component
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -40,9 +41,7 @@ function Profile() {
 
 function Favorites() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Favorites!</Text>
-    </View>
+    <FavoritesPage />
   );
 }
 

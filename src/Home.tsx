@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   searchByIngredientsContainer: {
     top: 228,
     height: 130,
-    left: 23,
+    left: 13,
   },
   searchIngredients: {
     left: 1,
@@ -354,9 +354,9 @@ const styles = StyleSheet.create({
   },
   searchByCategory: {
     top: 395,
-    width: 376,
+    width: 380,
     height: 128,
-    left: 23,
+    left: 13,
   },
   categLayout: {
     height: 87,
@@ -366,20 +366,20 @@ const styles = StyleSheet.create({
   categContainer: {
     backgroundColor: Color.yellow,
     borderRadius: 15,
-    height: 85,
-    width: 85,
+    height: 83,
+    width: 83,
     top: 0,
     position: "absolute",
   },
   categName: {
     fontFamily: FontFamily.candalRegular,
-    //fontSize: FontSize.size_xs,
+    fontSize: 12,
     top: 63,
     textAlign: "center",
     color: Color.maroon,
     position: "absolute",
-    left: 12,
-    width: 60,
+    left: 5,
+    width: 75,
   },
   categIcon: {
     height: 55,
@@ -394,17 +394,17 @@ const styles = StyleSheet.create({
     left: 0,
   },
   shio: {
-    left: 96,
+    left: 93,
     top: 41,
     width: 87,
   },
   miso: {
-    left: 193,
+    left: 187,
     top: 41,
     width: 87,
   },
   tonkotsu: {
-    left: 289,
+    left: 280,
     top: 41,
     width: 87,
   },
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     height: 280,
   },
   cardPosition: {
-    left: 20,
+    left: 10,
     position: "absolute",
   },
   cardChild: {

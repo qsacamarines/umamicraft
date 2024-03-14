@@ -27,12 +27,14 @@ const MoreStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'maroon',
     textAlign: 'center',
-    marginTop: 30,
+    marginTop: 50,
   },
   aboutDescription: {
     fontFamily: FontFamily.basicRegular,
     fontSize: 14,
     color: 'black',
+    lineHeight: 20,
+    top: 10,
   },
   developersSection: {
     backgroundColor: 'maroon',
@@ -41,6 +43,7 @@ const MoreStyles = StyleSheet.create({
     borderTopLeftRadius: screenWidth / 0.5,
     alignItems: 'center',
     overflow: 'hidden',
+    marginTop: 30,
   },
   developerProfiles: {
     flexDirection: 'row',
@@ -97,7 +100,7 @@ const MoreScreen: React.FC = () => {
       <ScrollView style={MoreStyles.container}>
         <View style={MoreStyles.aboutSection}>
           <Text style={MoreStyles.aboutTitle}>ABOUT UMAMI CRAFT</Text>
-          <Image source={require('../assets/Umami.png')} style={MoreStyles.logoImage} />
+          <Image source={require('../assets/umami-logo.png')} style={MoreStyles.logoImage} />
           <Text style={MoreStyles.aboutDescription}>
             Umami Craft is an innovative application designed to enhance your culinary experience by curating personalized ramen recipes based on the ingredients the user inputs. The application aims to provide users with a customized and delightful cooking experience.
           </Text>
