@@ -139,7 +139,7 @@ const App: React.FC = () => {
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
     "Candal-Regular": require("./assets/fonts/Candal-Regular.ttf"),
-    "BeVietnam": require("./assets/fonts/BeVietnamPro-Regular.ttf")
+    "BeVietnamPro-Regular": require("./assets/fonts/BeVietnamPro-Regular.ttf")
   });
 
   if (!fontsLoaded && !error) {
