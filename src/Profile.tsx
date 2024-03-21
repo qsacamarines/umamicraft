@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { AntDesign, FontAwesome, MaterialCommunityIcons, Ionicons, Entypo, Feather } from '@expo/vector-icons';
 import { FontFamily } from "../GlobalStyles";
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import firebaseApp from '.././firebase';
 
 type MenuItemProps = {
   title: string;
@@ -11,6 +14,33 @@ type MenuItemProps = {
 
 
 const ProfileScreen: React.FC = () => {
+  const [name, setName] = useState('Loading...');
+  const [username, setUsername] = useState('Loading...');
+
+    // Initialize Firestore and get the current user's ID
+    const db = getFirestore(firebaseApp);
+    const auth = getAuth(firebaseApp);
+    const user = auth.currentUser;
+
+    useEffect(() => {
+      const fetchUserData = async () => {
+        if (user) {
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+  
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setName(userData.name);
+            setUsername(userData.username);
+          } else {
+            console.log("No such document!");
+          }
+        }
+      };
+
+      
+    fetchUserData();
+  }, [user]);
 
     return (
         <ScrollView style={Profilestyles.container}>
@@ -27,8 +57,8 @@ const ProfileScreen: React.FC = () => {
               <AntDesign name="edit" size={24} color="maroon" />
             </TouchableOpacity>
           </View>
-          <Text style={Profilestyles.name}>Carlo Gonzalez</Text>
-          <Text style={Profilestyles.username}>@carlo</Text>
+          <Text style={Profilestyles.name}>{name}</Text>
+          <Text style={Profilestyles.username}>@{username}</Text>
         </View>
         <View style={Profilestyles.socialContainer}>
           <FontAwesome name="facebook-f" size={24} style={Profilestyles.socialIcon} />

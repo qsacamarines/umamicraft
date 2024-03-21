@@ -4,6 +4,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Color, FontFamily } from "../GlobalStyles";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import firebaseApp from '.././firebase'; // Import the Firebase app instance
 
 // Define the type for the stack navigator's parameters
@@ -16,6 +17,9 @@ type LoginNavigationProp = NavigationProp<RootStackParamList, 'Login'>;
 
 // Define the authentication
 const auth = getAuth(firebaseApp);
+
+// Define the firestore
+const db = getFirestore(firebaseApp);
 
 const RegisterPage: React.FC = () => {
   const navigation = useNavigation<LoginNavigationProp>();
@@ -93,25 +97,41 @@ const RegisterPage: React.FC = () => {
   const handleSignUp = async () => {
     if (validateForm()) {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        // Registration Successful Alert
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+  
+        // Store additional information in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          username: username,
+          // Add any additional fields you need
+        });
+  
+        // If the additional information is stored successfully:
         Alert.alert('Registration Successful', 'User registered successfully!');
         setRegistrationSuccessful(true);
+  
+        // Optionally, navigate to the login screen or another relevant screen
+        navigation.navigate('Login');
+  
       } catch (error) {
-        // Handle registration errors
+        // Handle both registration and Firestore errors
         console.error(error);
+        // You may want to display a different message based on the error type
+        Alert.alert('Registration Unsuccessful', 'There was an error during the registration process.');
       }
     }
   };
+  
 
   useEffect(() => {
     // useEffect will be called after the component is mounted
     // If registration was successful, navigate to the Login screen
-    if (email && password && registrationSuccessful) {
+    if (registrationSuccessful) {
       // Navigate to the login screen after successful registration
       navigation.navigate('Login');
     }
-  }, [email, password, registrationSuccessful, navigation]);
+  }, [registrationSuccessful, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>

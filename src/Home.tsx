@@ -1,19 +1,46 @@
-import * as React from "react";
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TextInput, Pressable } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation, ParamListBase } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
 import { FontAwesome } from '@expo/vector-icons';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import firebaseApp from '.././firebase';
 
-const HomeScreen = () => {
+const HomeScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const [name, setName] = useState('Loading...');
+
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const fetchUsername = async () => {
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setName(docSnap.data().name); // Assuming the username field is stored like this
+          } else {
+            console.log('No user data found in Firestore');
+          }
+        };
+
+        fetchUsername();
+      }
+    });
+
+    return () => unsubscribe(); // Detach listener on cleanup
+  }, []);
 
   return (
     <View style={styles.home}>
       {/* Header */}
       <View style={styles.header}>
       <Text style={styles.welcome}>Welcome,</Text>
-      <Text style={styles.carlo}>Carlo!</Text>
+      <Text style={styles.carlo}>{ name || 'Guest' }!</Text>
 
       {/* Searchbar */}
       <View style={styles.searchBarContainer}>
