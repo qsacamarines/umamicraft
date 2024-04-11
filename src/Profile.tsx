@@ -165,19 +165,18 @@ const ProfileScreen: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('Loading...');
   const [username, setUsername] = useState('Loading...');
+  const [unsubscribeFromFirestore, setUnsubscribeFromFirestore] = useState<() => void>(() => {});
   const navigation = useNavigation<StackNavigationProp<any>>();
-
   const db = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
   const user = auth.currentUser;
 
   useEffect(() => {
-    let unsubscribe = () => {};
     if (user) {
       const docRef = doc(db, "users", user.uid);
-      
+
       // Listen for real-time updates with onSnapshot
-      unsubscribe = onSnapshot(docRef, (docSnap) => {
+      const unsubscribe = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
           setName(userData.name);
@@ -186,15 +185,27 @@ const ProfileScreen: React.FC = () => {
           console.log("No such document!");
         }
       }, (error) => {
-        console.log("Error getting document:", error);
+        console.error("Error getting document:", error);
       });
+
+      // Save the unsubscribe function so we can call it on logout
+      setUnsubscribeFromFirestore(() => unsubscribe);
     }
 
-    // Detach the listener when the component is unmounted or when the user changes
-    return () => unsubscribe();
+    // Return a function that unsubscribes from the listener when the component unmounts
+    return () => {
+      if (unsubscribeFromFirestore) {
+        unsubscribeFromFirestore();
+      }
+    };
   }, [user]);
 
   const handleLogout = async () => {
+    // Unsubscribe from Firestore listener before signing out
+    if (unsubscribeFromFirestore) {
+      unsubscribeFromFirestore();
+    }
+
     try {
       await signOut(auth);
       navigation.reset({
