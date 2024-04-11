@@ -1,29 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Modal, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer, useNavigation, ParamListBase} from '@react-navigation/native';
-import { StackNavigationProp } from "@react-navigation/stack";
-import { createStackNavigator } from '@react-navigation/stack';
-import CustomizeRecipe from './customizeRecipePage';
-import firebase from '../firebase';
-import { database } from '../firebase';
-import { get, ref } from 'firebase/database';
+import { ref, get } from 'firebase/database';
+import { database } from '../firebase'; // Make sure this path matches your Firebase configuration file
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
-const Stack = createStackNavigator();
+type RecipeNavigatorParamList = {
+  OneRecipePage: { recipeId: string }; // Define other screens and their params in a similar manner
+};
 
-const RecipePage: React.FC = () => {
-  const [isHeartFull, setIsHeartFull] = useState<boolean>(false);
-  const [isModalVisible, setModalVisible] = useState<boolean>(false);
-  const [isRemoveModalVisible, setRemoveModalVisible] = useState<boolean>(false);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+const OneRecipePage = () => {
+  const [recipe, setRecipe] = useState(null);
+  const [isHeartFull, setIsHeartFull] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [isRemoveModalVisible, setRemoveModalVisible] = useState(false);
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<RecipeNavigatorParamList, 'OneRecipePage'>>();
+  const recipeId = route.params.recipeId;
+
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      const recipeRef = ref(database, `recipes/${recipeId}`);
+      try {
+        const snapshot = await get(recipeRef);
+        if (snapshot.exists()) {
+          setRecipe(snapshot.val());
+        } else {
+          console.log('Recipe does not exist.');
+        }
+      } catch (error) {
+        console.error('Error fetching recipe details:', error);
+      }
+    };
+
+    fetchRecipe();
+  }, [recipeId]);
+
+  const handleBackClick = () => {
+    navigation.goBack();
+  };
 
   const handleHeartClick = () => {
     setIsHeartFull(!isHeartFull);
-    if (!isHeartFull) {
-      setModalVisible(true);
-    } else {
-      setRemoveModalVisible(true);
-    }
+    setModalVisible(!isHeartFull);
+    setRemoveModalVisible(isHeartFull);
   };
 
   const closeModal = () => {
@@ -31,171 +51,107 @@ const RecipePage: React.FC = () => {
     setRemoveModalVisible(false);
   };
 
+  if (!recipe) {
+    return <View style={styles.container}><Text>Loading...</Text></View>;
+  }
 
   return (
-      <Stack.Navigator initialRouteName="Recipe">
-        <Stack.Screen name="Recipe" component={RecipeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="CustomizeRecipe" component={CustomizeRecipe} options={{ headerShown: false }} />
-      </Stack.Navigator>
-  );
-
-  function RecipeScreen() {
-    const [recipe, setRecipe] = useState<any>(null);
-
-    useEffect(() => {
-      const fetchRecipe = async () => {
-        try {
-          const snapshot = await get(ref(database, 'recipes/recipe1'));
-          const recipeData = snapshot.val();
-          console.log('Recipe Data:', recipeData);
-          setRecipe(recipeData);
-        } catch (error) {
-          console.error('Error fetching recipe:', error);
-        }
-      };
-
-      fetchRecipe();
-    }, []);
-
-    return (
-      <ScrollView style={styles.container}>
-      <View style={styles.header} />
-
-
+    <ScrollView style={styles.container}>
       <View style={styles.navigationHeader}>
-        <TouchableOpacity>
-          <Ionicons name="arrow-back" size={24} color="#fff" style={styles.icon} />
+        <TouchableOpacity onPress={handleBackClick}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.recipeName}>Recipe Name</Text>
-        <TouchableOpacity onPress={() => handleHeartClick()}>
+        <Text style={styles.recipeName}>{recipe?.name || 'Loading...'}</Text>
+        <TouchableOpacity onPress={handleHeartClick}>
           <Ionicons
             name={isHeartFull ? 'heart' : 'heart-outline'}
             size={24}
             color="#fff"
-            style={styles.icon}
           />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.titleContainer}>
-        <Text style={styles.recipeTitle}>{recipe?.recipe_name || 'Loading...'}</Text>
-      </View>
+      <Image source={{ uri: recipe.image_url }} style={styles.recipeImage} />
 
-      <View style={styles.ImageContainer}>
-        <Image source={{ uri: recipe?.image_url || 'https://picsum.photos/200' }} style={styles.recipeImage} />
-      </View>
-
-      <View style={styles.stepsContainer}>
+      <View style={styles.details}>
+        <Text style={styles.recipeTitle}>{recipe.name}</Text>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ingredients:</Text>
-          {recipe?.ingredients?.map((ingredient: string, index: number) => (
-            <Text key={index}>- {ingredient}</Text>
+          {recipe.ingredients.map((item, index) => (
+            <Text key={index}>{`${item.quantity} ${item.unit} ${item.ingredient}`}</Text>
           ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cooking Steps:</Text>
-          {recipe?.steps?.map((step: string, index: number) => (
-            <Text key={index}>{`${index + 1}. ${step}`}</Text>
+          <Text style={styles.sectionTitle}>Instructions:</Text>
+          {recipe.instructions.map((item, index) => (
+            <Text key={index}>{`${index + 1}. ${item.instruction}`}</Text>
           ))}
         </View>
       </View>
-      
-     {/* Added to favorites modal */}
-     <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isModalVisible}
-          onRequestClose={closeModal}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalHeader}>Great!</Text>
-              <Text style={styles.additionalText}>
-                <Text style={{ fontWeight: 'bold', fontSize: 20 }}>You added this recipe to your favorites.</Text>
-                {"\n"}{"\n"}
-                <Text style={{ fontSize: 16 }}>You can customize this recipe to your liking.</Text>
-              </Text>
-              <TouchableOpacity
-                style={styles.customizeButton}
-                onPress={() => {
-                  closeModal();
-                  navigation.navigate('CustomizeRecipe' as never);
-                }}
-              >
-                <Text style={styles.buttonText}>Customize</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
 
-      {/* Remove from favorites modal */}
+      {/* Modal for adding to favorites */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Added to Favorites!</Text>
+            <TouchableOpacity style={styles.buttonClose} onPress={closeModal}>
+              <Text style={styles.textStyle}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal for removing from favorites */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={isRemoveModalVisible}
         onRequestClose={closeModal}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Remove Recipe?</Text>
-            <Text style={styles.additionalText}>
-              <Text style={{ fontSize: 16 }}>
-                You're going to be removing this recipe from favorites.
-              </Text>
-            </Text>
-            <TouchableOpacity style={styles.customizeButton} onPress={closeModal}>
-              <Text style={styles.buttonText}>Remove</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#000" />
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Removed from Favorites!</Text>
+            <TouchableOpacity style={styles.buttonClose} onPress={closeModal}>
+              <Text style={styles.textStyle}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
-
-      
     </ScrollView>
-    );
-  }
+  );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingBottom: 40,
   },
-  header: {
-    backgroundColor: '#841D06',
-    width: 450,
-    height: 450,
-    borderRadius: 450 / 2,
+  navigationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: -100,
-    left:-30,
+    paddingHorizontal: 16,
+    backgroundColor: '#841D06', // Or your choice of header color
+    paddingTop: 10,
   },
   recipeImage: {
-    width: 300,
-    height: 200,
+    width: '100%',
+    height: 300,
     resizeMode: 'cover',
-    borderRadius: 8,
-    marginTop: 40, 
-    opacity:50,
+  },
+  details: {
+    padding: 20,
   },
   recipeTitle: {
-    fontSize: 40,
-    fontWeight: '900',
-    color: '#fff',
-    marginTop: 16,
-    zIndex: 1,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
   recipeName: {
     fontSize: 24,
@@ -203,82 +159,50 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   section: {
-    marginTop: 16,
-
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  ImageContainer:{
-    flex: 1,
-    alignItems:"center",
-    justifyContent:"center",
-  },
-  titleContainer:{
-    flex:1,
-    paddingTop: 30,
-    paddingLeft: 50,
-  },
-  stepsContainer:{
-    alignItems:"center",
-    padding: 20,
-  },
-  navigationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    backgroundColor: '#841D06',
-  },
-  icon: {
-    marginRight: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 40,
-    width: '90%',
-    alignItems: 'center', 
-    marginBottom:10,
-  },
-  modalHeader: {
-    color: '#841D06',
-    fontSize: 39, 
-    fontWeight: 'bold', 
     marginBottom: 10,
   },
-  additionalText: {
-    fontSize: 18, 
-    textAlign: 'center',
-    marginBottom: 10,
+  // Modal styles
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
   },
-  customizeButton: {
-    backgroundColor: '#841D06',
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3",
+    borderRadius: 20,
     padding: 10,
-    borderRadius: 12,
-    marginTop: 10,
-    width: '90%', 
+    elevation: 2
   },
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize:20,
-    fontWeight: "700",
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
   },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  }
 });
 
-export default RecipePage;
+export default OneRecipePage;

@@ -94,34 +94,37 @@ const RegisterPage: React.FC = () => {
   };
 
   // Handle Sign Up Button Function
-  const handleSignUp = async () => {
-    if (validateForm()) {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-  
-        // Store additional information in Firestore
-        await setDoc(doc(db, "users", user.uid), {
-          name: name,
-          username: username,
-          // Add any additional fields you need
-        });
-  
-        // If the additional information is stored successfully:
-        Alert.alert('Registration Successful', 'User registered successfully!');
-        setRegistrationSuccessful(true);
-  
-        // Optionally, navigate to the login screen or another relevant screen
-        navigation.navigate('Login');
-  
-      } catch (error) {
-        // Handle both registration and Firestore errors
-        console.error(error);
-        // You may want to display a different message based on the error type
-        Alert.alert('Registration Unsuccessful', 'There was an error during the registration process.');
-      }
+// Handle Sign Up Button Function
+const handleSignUp = async () => {
+  if (validateForm()) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Store additional information in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: name,
+        email: email, // Make sure to include email
+        username: username,
+        password: password, // Storing passwords in plaintext is not recommended
+      });
+
+      // If the additional information is stored successfully:
+      Alert.alert('Registration Successful', 'User registered successfully!');
+      setRegistrationSuccessful(true);
+
+      // Optionally, navigate to the login screen or another relevant screen
+      navigation.navigate('Login');
+
+    } catch (error) {
+      // Handle both registration and Firestore errors
+      console.error(error);
+      // You may want to display a different message based on the error type
+      Alert.alert('Registration Unsuccessful', 'There was an error during the registration process.');
     }
-  };
+  }
+};
+
   
 
   useEffect(() => {

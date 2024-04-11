@@ -13,6 +13,8 @@ import ProfileScreen from "./src/Profile"; // Import the Profile component
 import FavoritesPage from "./src/Favorites"; // Import the Favorites component
 import MoreScreen from "./src/More"; // Import the More component
 import RecipePage from "./src/RecipePage"; // Import the Recipe component
+import OneRecipePage from "./src/oneRecipePage"; 
+import EditProfile from './src/editProfile';
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
@@ -159,6 +161,8 @@ const App: React.FC = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" component={MyTabs} />
+        <Stack.Screen name="OneRecipePage" component={OneRecipePage} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
       </Stack.Navigator>
     </NavigationContainer>
   );

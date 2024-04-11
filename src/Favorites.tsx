@@ -1,173 +1,137 @@
 import * as React from "react";
 import { Text, StyleSheet, View, Image, Pressable } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { useNavigation, ParamListBase } from "@react-navigation/native";
+import { useNavigation, ParamListBase, useIsFocused } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { ref, onValue } from "firebase/database";
+import { database } from "../firebase";
+
+type Recipe = {
+  id: string;
+  name: string;
+  image_url: string;
+};
 
 const FavoritesPage = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const [recipes, setRecipes] = React.useState<Recipe[]>([]);
+  const [favoritedRecipes, setFavoritedRecipes] = React.useState<Recipe[]>([]);
+  const [userId, setUserId] = React.useState<string | null>(null);
+  const isFocused = useIsFocused();
+
+  const auth = getAuth();
+  const db = getFirestore();
+
+  React.useEffect(() => {
+    // Fetch the recipes from the Realtime Database
+    const recipesRef = ref(database, "recipes");
+    const unsubscribeRecipes = onValue(recipesRef, (snapshot) => {
+      const rawData = snapshot.val();
+      const fetchedRecipes: Recipe[] = Object.keys(rawData).map((key) => ({
+        id: key,
+        name: rawData[key].name,
+        image_url: rawData[key].image_url,
+        calories: rawData[key].calories,
+      }));
+      setRecipes(fetchedRecipes);
+    });
+
+    // Listen for auth state changes and fetch the user's favorited recipes from Firestore
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const userFavoritesRef = collection(db, "users", user.uid, "favorites");
+        const unsubscribeFavorites = onSnapshot(userFavoritesRef, (snapshot) => {
+          const favoriteRecipes: Recipe[] = [];
+          snapshot.docs.forEach((doc) => {
+            const recipe = doc.data() as Recipe;
+            favoriteRecipes.push(recipe);
+          });
+          setFavoritedRecipes(favoriteRecipes);
+        });
+        return unsubscribeFavorites;
+      } else {
+        setUserId(null);
+        setFavoritedRecipes([]);
+      }
+    });
+
+    return () => {
+      unsubscribeRecipes();
+      unsubscribeAuth();
+    };
+  }, [auth, db, isFocused]);
 
   return (
     <View style={styles.favoritesPage}>
-      <Text style={[styles.favorites, styles.favoritesFlexBox]}>FAVORITES</Text>
-
-      <View style={[styles.faverecipe1box, styles.boxWidth]}>
-        <View style={[styles.box1, styles.boxWidth]} />
-        <Image
-          style={[styles.recipe1pic, styles.boxWidth]}
-          source={require("../assets/faverecipe1.png")}
-        />
-        <View style={[styles.rect1, styles.boxWidth]} />
-        <Text style={styles.recipeName}>{'Special Pork Belly\nRamen'}</Text>
-        <Text style={styles.calorie}>1022 Cal</Text>
+      <Text style={styles.favorites}>FAVORITES</Text>
+      <View style={styles.recipeList}>
+        {favoritedRecipes.map((recipe) => (
+          <View key={recipe.id} style={styles.recipeCard}>
+            <Image style={styles.recipeImage} source={{ uri: recipe.image_url }} />
+            <View style={styles.recipeDetails}>
+              <Text style={styles.recipeName}>{recipe.name}</Text>
+            </View>
+          </View>
+        ))}
       </View>
-
-      <View style={[styles.faverecipe2box, styles.favoritesFlexBox]}>
-        <View style={[styles.box2, styles.boxWidth]} />
-        <Image
-          style={[styles.recipe2pic, styles.boxWidth]}
-          source={require("../assets/faverecipe2.png")}
-        />
-        <View style={[styles.rect1, styles.boxWidth]} />
-        <Text style={styles.recipeName}>{'Ginger Chicken and\nSpinach Ramen'}</Text>
-        <Text style={styles.calorie}>674 Cal</Text>
-      </View>
-
-      <Image
-        style={styles.addFavoriteIcon}
-        source={require("../assets/add-favorite.png")}
-      />
-      <Text style={[styles.addFavorite, styles.favoritesFlexBox]}>
-        Add Favorite
-      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  favoritesPage: {
+    flex: 1,
+    backgroundColor: Color.maroon,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
   favorites: {
-    top: 60,
-    left: 20,
     fontSize: 30,
     fontFamily: FontFamily.archivoBlackRegular,
-    width: 220,
-  },
-  favoritesFlexBox: {
-    textAlign: "left",
     color: Color.white,
-    position: "absolute",
+    marginBottom: 20,
   },
-  faverecipe1box: {
-    left: 20,
-    height: 151,
-    top: 130,
+  recipeList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
-  rect1: {
-    top: 104,
-    height: 19,
-    backgroundColor: '#f9f9f9',
-    width: 115,
-    left: 0,
+  recipeCard: {
+    width: "48%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "rgba(0, 0, 0, 0.25)",
+    shadowOffset: {
+      width: 0,
+      height: 2.5,
+    },
+    shadowOpacity: 1,
+    shadowRadius: 4,
   },
-  boxWidth: {
-    width: 125,
-    position: "absolute",
+  recipeImage: {
+    width: "100%",
+    height: 150,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  recipeDetails: {
+    padding: 10,
   },
   recipeName: {
-    width: 111,
-    height: 30,
-    color: Color.black,
     fontFamily: FontFamily.basicRegular,
-    fontSize: 10,
-    fontWeight: 'bold',
-    left: 4,
-    top: 107,
-    textAlign: "left",
-    position: "absolute",
-  },
-  recipe1pic: {
-    height: 108,
-    borderRadius: 5,
-    left: 0,
-    top: 0,
-  },
-  box1: {
-    shadowOpacity: 1,
-    elevation: 4,
-    shadowRadius: 4,
-    shadowOffset: {
-      width: 0,
-      height: 2.5,
-    },
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    width: 115,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    left: 0,
-    top: 0,
-    height: 155,
+    fontSize: 14,
+    fontWeight: "bold",
+    color: Color.black,
   },
   calorie: {
-    top: 135,
-    width: 39,
-    height: 15,
     fontFamily: FontFamily.beVietnam,
+    fontSize: 12,
     color: Color.black,
-    fontSize: 10,
-    left: 4,
-    textAlign: "left",
-    position: "absolute",
-  },
-  faverecipe2box: {
-    left: 160,
-    width: 116,
-    position: "absolute",
-    height: 151,
-    top: 130,
-  },
-  box2: {
-    shadowOpacity: 1,
-    elevation: 4,
-    shadowRadius: 4,
-    shadowOffset: {
-      width: 0,
-      height: 2.5,
-    },
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    width: 115,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    left: 0,
-    top: 0,
-    height: 155,
-  },
-  recipe2pic: {
-    height: 108,
-    width: 125,
-    borderRadius: 5,
-    left: 0,
-    top: 0,
-  },
-  addFavoriteIcon: {
-    top: 160,
-    left: 303,
-    width: 75,
-    height: 75,
-    position: "absolute",
-  },
-  addFavorite: {
-    top: 240,
-    left: 305,
-    fontSize: 13,
-    lineHeight: 26,
-    fontFamily: FontFamily.didactGothicRegular,
-  },
-  favoritesPage: {
-    backgroundColor: Color.maroon,
-    flex: 1,
-    height: "100%",
-    overflow: "hidden",
-    width: "100%",
   },
 });
 

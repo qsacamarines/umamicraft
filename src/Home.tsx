@@ -4,7 +4,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation, ParamListBase } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
 import { FontAwesome } from '@expo/vector-icons';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebaseApp from '.././firebase';
 
@@ -16,23 +16,31 @@ const HomeScreen: React.FC = () => {
   const db = getFirestore(firebaseApp);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let unsubscribeUser = () => {};
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
-        const fetchUsername = async () => {
-          const docRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(docRef);
+        const docRef = doc(db, 'users', user.uid);
+
+        unsubscribeUser = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
-            setName(docSnap.data().name); // Assuming the username field is stored like this
+            setName(docSnap.data().name); // Assuming there is a 'name' field in the document
           } else {
             console.log('No user data found in Firestore');
           }
-        };
-
-        fetchUsername();
+        }, (error) => {
+          console.log('Error getting document:', error);
+        });
+      } else {
+        // Handle user being logged out
+        setName('Guest');
       }
     });
 
-    return () => unsubscribe(); // Detach listener on cleanup
+    return () => {
+      unsubscribeAuth(); // Detach auth listener on cleanup
+      unsubscribeUser(); // Detach user data listener on cleanup
+    };
   }, []);
 
   return (
