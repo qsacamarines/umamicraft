@@ -7,6 +7,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebaseApp from '.././firebase';
+import ViewAllIngredients from './ViewAllIngredients';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
@@ -39,21 +40,21 @@ const HomeScreen: React.FC = () => {
     <View style={styles.home}>
       {/* Header */}
       <View style={styles.header}>
-      <Text style={styles.welcome}>Welcome,</Text>
-      <Text style={styles.carlo}>{ name || 'Guest' }!</Text>
+        <Text style={styles.welcome}>Welcome,</Text>
+        <Text style={styles.carlo}>{name || 'Guest'}!</Text>
 
-      {/* Searchbar */}
-      <View style={styles.searchBarContainer}>
-        <TextInput 
-        placeholder = 'Search recipes'
-        style={styles.textInput}/>
-        <FontAwesome name="search"
-        style={styles.searchBtn}
-        size={24} 
-        color='#841D06' />
-      </View>
+        {/* Searchbar */}
+        <View style={styles.searchBarContainer}>
+          <TextInput
+            placeholder='Search recipes'
+            style={styles.textInput} />
+          <FontAwesome name="search"
+            style={styles.searchBtn}
+            size={24}
+            color='#841D06' />
+        </View>
 
-      {/* Search by Ingredients */}
+        {/* Search by Ingredients */}
       </View>
       <View style={[styles.searchByIngredientsContainer, styles.ingredientsLayout]}>
         <Text style={[styles.searchIngredients, styles.titles]}>
@@ -61,85 +62,66 @@ const HomeScreen: React.FC = () => {
         </Text>
         <Pressable
           style={styles.viewAll}
-          onPress={() => navigation.navigate("ViewAllIngredients")}
+          onPress={() => navigation.navigate('ViewAllIngredients')}
         >
           <Text style={[styles.underlined, styles.ingredientsText]}>View all</Text>
         </Pressable>
-        <View
-          style={[styles.rowOfIngredientsWrapper, styles.ingredientsLayout]}
-        >
-          <View>
-          <View style={[styles.eggPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                source={require("../assets/circle1.png")}
-              />
-              <Image
-                style={[styles.eggIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/egg.png")}
-              />
-              <Text style={[styles.eggText, styles.ingredientsText]}>Egg</Text>
-            </View>
 
-            <View style={[styles.garlicPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle2.png")}
-              />
-              <Image
-                style={[styles.garlicIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/garlic.png")}
-              />
-              <Text style={[styles.garlicText, styles.ingredientsText]}>Garlic</Text>
-            </View>
+        <View style={styles.row}>
 
-            <View style={[styles.onionPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle3.png")}
-              />
-              <Image
-                style={[styles.onionIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/onion.png")}
-              />
-              <Text style={[styles.onionText, styles.ingredientsText]}>Onion</Text>
-            </View>
-
-            <View style={[styles.porkPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle4.png")}
-              />
-              <Image
-                style={[styles.porkIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/pork.png")}
-              />
-              <Text style={[styles.porkText, styles.ingredientsText]}>Pork</Text>
-            </View>
+          <View style={styles.ingredient}>
+            <Image
+              style={styles.ingredientIcon}
+              source={require("../assets/Egg.png")}
+            />
+            <Text style={[styles.ingredientsText]}>Egg</Text>
           </View>
+
+          <View style={styles.ingredient}>
+            <Image
+              style={styles.ingredientIcon}
+              source={require("../assets/onion.png")}
+            />
+            <Text style={[styles.ingredientsText]}>Onion</Text>
+          </View>
+
+          <View style={styles.ingredient}>
+            <Image
+              style={styles.ingredientIcon}
+              source={require("../assets/garlic.png")}
+            />
+            <Text style={[styles.ingredientsText]}>Garlic</Text>
+          </View>
+
+          <View style={styles.ingredient}>
+            <Image
+              style={styles.ingredientIcon}
+              source={require("../assets/Steak.png")}
+            />
+            <Text style={[styles.ingredientsText]}>Steak</Text>
+          </View>
+
         </View>
+
       </View>
 
       {/* Search by Category */}
       <View style={styles.searchByCategory}>
+
         <Text style={styles.titles}>
           Search by Category
         </Text>
-        <View style={[styles.shoyu, styles.categLayout]}>
-          <View style={styles.categContainer} />
-          <Text style={styles.categName}>Shoyu</Text>
-          <Image
-            style={styles.categIcon}
-            source={require("../assets/shoyu.png")}
-          />
-        </View>
+
+        <Pressable onPress={() => navigation.navigate('CategoryPage1')}>
+          <View style={[styles.shoyu, styles.categLayout]}>
+            <View style={styles.categContainer} />
+            <Text style={styles.categName}>Shoyu</Text>
+            <Image
+              style={styles.categIcon}
+              source={require("../assets/shoyu.png")}
+            />
+          </View>
+        </Pressable>
 
         <View style={[styles.shio, styles.categLayout]}>
           <View style={styles.categContainer} />
@@ -158,7 +140,7 @@ const HomeScreen: React.FC = () => {
             source={require("../assets/miso.png")}
           />
         </View>
-        
+
         <View style={[styles.tonkotsu, styles.categLayout]}>
           <View style={styles.categContainer} />
           <Text style={styles.categName}>Tonkotsu</Text>
@@ -175,8 +157,8 @@ const HomeScreen: React.FC = () => {
         <Text style={[styles.title, styles.titlePosition]}>{`Where Ingredients\nMeet Inspiration!`}</Text>
         <Text
           style={[styles.subtitle, styles.titlePosition]}>
-            {`Discover personalized recipes tailored to your taste,\nhealth goals, and allergies, all at your fingertips!`}
-            </Text>
+          {`Discover personalized recipes tailored to your taste,\nhealth goals, and allergies, all at your fingertips!`}
+        </Text>
         <Image
           style={styles.ramenImg}
           source={require("../assets/ramen-topview.png")}
@@ -187,6 +169,17 @@ const HomeScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  row: {
+    top: 36,
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+  ingredientsList: {
+    display: 'flex',
+    justifyContent: 'space-evenly',
+    flexDirection: 'column',
+  },
   header: {
     backgroundColor: Color.maroon,
     borderBottomLeftRadius: 25,
@@ -505,8 +498,8 @@ export default HomeScreen;
 
 
 
-  
 
-  
+
+
 
 

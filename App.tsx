@@ -13,12 +13,16 @@ import ProfileScreen from "./src/Profile"; // Import the Profile component
 import FavoritesPage from "./src/Favorites"; // Import the Favorites component
 import MoreScreen from "./src/More"; // Import the More component
 import RecipePage from "./src/RecipePage"; // Import the Recipe component
+import oneRecipePage from "./src/oneRecipePage";
+import ViewAllIngredients from "./src/ViewAllIngredients"
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+import CategoryPage1 from './src/CategoryPage1';
+import editProfile from './src/editProfile';
 
 
 function Home() {
@@ -159,6 +163,13 @@ const App: React.FC = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" component={MyTabs} />
+        <Stack.Screen name="ViewAllIngredients" component={ViewAllIngredients} />
+        <Stack.Screen name="Recipes" component={RecipePage} />
+        <Stack.Screen name="oneRecipePage" component={oneRecipePage} />
+        <Stack.Screen name="CategoryPage1" component={CategoryPage1} />
+        <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="editProfile" component={editProfile} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,141 +1,248 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Text, StyleSheet, View, Image, Pressable, TouchableOpacity, ScrollView} from "react-native";
+import { Text, StyleSheet, View, Image, Pressable, TouchableOpacity, ScrollView } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation, ParamListBase } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
 import { Ionicons } from '@expo/vector-icons';
+import oneRecipePage from './oneRecipePage';
+import { ref, onValue, off } from "firebase/database";
+import { database } from '../firebase'; // Your configured firebase file
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, setDoc, doc } from 'firebase/firestore';
+
+type Recipe = {
+  id: string;
+  name: string;
+  image_url: string;
+};
 
 const Recipes: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const [isHeartFull, setIsHeartFull] = useState<boolean>(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [favoritedRecipes, setFavoritedRecipes] = useState<string[]>([]);
+  const auth = getAuth();
+  const db = getFirestore();
+  const [favoritedMap, setFavoritedMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Fetch the recipes from your realtime database
+    const recipesRef = ref(database, 'recipes');
+    const unsubscribeRecipes = onValue(recipesRef, (snapshot) => {
+      const rawData = snapshot.val();
+      const fetchedRecipes: Recipe[] = Object.keys(rawData).map((key) => ({
+        id: key,
+        name: rawData[key].name,
+        image_url: rawData[key].image_url,
+      }));
+      setRecipes(fetchedRecipes);
+
+      // Create a map of recipe IDs to their favorited state
+      const favoritedMap = fetchedRecipes.reduce((acc, recipe) => {
+        acc[recipe.id] = favoritedRecipes.includes(recipe.id);
+        return acc;
+      }, {});
+
+      // Set the favorited map as state
+      setFavoritedMap(favoritedMap);
+    });
+
+    // Listen for auth state changes and fetch the user's favorited recipes from Firestore
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const userFavoritesRef = collection(db, 'users', user.uid, 'favorites');
+        const unsubscribeFavorites = onSnapshot(userFavoritesRef, (snapshot) => {
+          const favoriteIds = snapshot.docs.map((doc) => doc.id);
+          setFavoritedRecipes(favoriteIds);
+        });
+        return unsubscribeFavorites;
+      } else {
+        setUserId(null);
+        setFavoritedRecipes([]);
+        setFavoritedMap({}); // Reset the favorited map when the user logs out
+      }
+    });
+
+    return () => {
+      unsubscribeRecipes();
+      unsubscribeAuth();
+    };
+  }, [auth, db]);
+
+  useEffect(() => {
+    // Create a map of recipe IDs to their favorited state
+    const favoritedMap = recipes.reduce((acc, recipe) => {
+      acc[recipe.id] = favoritedRecipes.includes(recipe.id);
+      return acc;
+    }, {});
+
+    // Set the favorited map as state
+    setFavoritedMap(favoritedMap);
+  }, [recipes, favoritedRecipes]);
+
+  const handleFavorite = async (recipe: Recipe) => {
+    if (!userId) {
+      console.log('User must be logged in to save favorites');
+      return;
+    }
+
+    const userFavoritesRef = collection(db, 'users', userId, 'favorites');
+    const recipeRef = doc(userFavoritesRef, recipe.id);
+
+    if (favoritedRecipes.includes(recipe.id)) {
+      // Remove the recipe from favorites
+      await deleteDoc(recipeRef);
+      setFavoritedRecipes(favoritedRecipes.filter((id) => id !== recipe.id));
+      setFavoritedMap({ ...favoritedMap, [recipe.id]: false }); // Update favoritedMap
+    } else {
+      // Add the recipe to favorites
+      await setDoc(recipeRef, recipe);
+      setFavoritedRecipes([...favoritedRecipes, recipe.id]);
+      setFavoritedMap({ ...favoritedMap, [recipe.id]: true }); // Update favoritedMap
+    }
+  };
+
+  const isFavorited = (recipeId: string) => favoritedMap[recipeId] || false;
+
+  const handlePressRecipe = (recipe: Recipe) => {
+    navigation.navigate('OneRecipePage', { recipeId: recipe.id });
+  };
+
+  const renderItem = ({ item }: { item: Recipe }) => (
+    <TouchableOpacity
+      style={styles.recipeCardContainer}
+      onPress={() => handlePressRecipe(item)}
+    >
+      <View style={styles.recipeCard}>
+        <Image style={styles.recipeImage} source={{ uri: item.image_url }} />
+        <View style={styles.recipeDetails}>
+          <Text style={styles.recipeName}>{item.name}</Text>
+          <View style={styles.detailsCont}>
+            <Text style={styles.recipeCal}>658 Cal.</Text>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                handleFavorite(item);
+              }}
+              style={styles.favoriteButton}
+            >
+              <Ionicons
+                name={isFavorited(item.id) ? 'heart' : 'heart-outline'}
+                size={24}
+                color="maroon"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+
+  //////
+
 
   return (
-    <ScrollView style={styles.favoritesPage}>
-        <Text style={[styles.favorites, styles.favoritesFlexBox]}>Recipes</Text>
-
-        <View style={[styles.faverecipe1box, styles.boxWidth]}>
-          <View style={[styles.box1, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe1pic, styles.boxWidth]}
-            source={require("../assets/recipe1.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Easy Chicken\nRamen'}</Text>
-          <Text style={styles.calorie}>658 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
+    <ScrollView style={styles.scrollCont}>
+      <View style={styles.container}>
+        <Text style={styles.title}>RECIPES</Text>
+        <View style={styles.vertFlex}>
+          <View style={styles.horiFlex}>
+            {recipes.map((recipe) => (
+              <View key={recipe.id} style={styles.recipeCardContainer}>
+                {renderItem({ item: recipe })}
+              </View>
+            ))}
+          </View>
+          <View style={styles.horiFlex}>
+            {recipes.map((recipe) => (
+              <View key={recipe.id} style={styles.recipeCardContainer}>
+                {renderItem({ item: recipe })}
+              </View>
+            ))}
+          </View>
+          <View style={styles.horiFlex}>
+            {recipes.map((recipe) => (
+              <View key={recipe.id} style={styles.recipeCardContainer}>
+                {renderItem({ item: recipe })}
+              </View>
+            ))}
+          </View>
         </View>
-
-        <View style={[styles.faverecipe2box, styles.favoritesFlexBox]}>
-          <View style={[styles.box2, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe2pic, styles.boxWidth]}
-            source={require("../assets/recipe2.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Tonkotsu\nRamen'}</Text>
-          <Text style={styles.calorie}>1262 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.faverecipe3box, styles.favoritesFlexBox]}>
-          <View style={[styles.box3, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe3pic, styles.boxWidth]}
-            source={require("../assets/recipe3.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Chili Lime Shrimp\nRamen Noodles'}</Text>
-          <Text style={styles.calorie}>862 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.faverecipe4box, styles.favoritesFlexBox]}>
-          <View style={[styles.box4, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe4pic, styles.boxWidth]}
-            source={require("../assets/faverecipe2.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Ginger Chicken and\nSpinach Ramen'}</Text>
-          <Text style={styles.calorie}>357 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.faverecipe5box, styles.favoritesFlexBox]}>
-          <View style={[styles.box5, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe5pic, styles.boxWidth]}
-            source={require("../assets/recipe5.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Spicy Miso\nRamen'}</Text>
-          <Text style={styles.calorie}>492 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.faverecipe6box, styles.favoritesFlexBox]}>
-          <View style={[styles.box6, styles.boxWidth]} />
-          <Image
-            style={[styles.recipe6pic, styles.boxWidth]}
-            source={require("../assets/faverecipe1.png")}
-          />
-          <View style={[styles.rect1, styles.boxWidth]} />
-          <Text style={styles.recipeName}>{'Pork Belly\nRamen'}</Text>
-          <Text style={styles.calorie}>674 Cal</Text>
-          <TouchableOpacity onPress={() => handleHeartClick()}>
-            <Ionicons
-              name={isHeartFull ? 'heart' : 'heart-outline'}
-              size={24}
-              color='maroon'
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-
+      </View>
     </ScrollView>
-    
   );
 };
 
 const styles = StyleSheet.create({
-  container:{
-    flex: 1,
+  detailsCont:{
+    width: "92%",
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  recipeDetails: {
+    height: 67,
+    width: 168,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+    marginHorizontal: 8,
+  },
+  recipeCal: {
+    fontSize: 12,
+  },
+  recipeName: {
+    color: Color.black,
+    fontFamily: FontFamily.basicRegular,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  recipeImage: {
+    width: 168,
+    height: 150,
+    resizeMode: 'cover',
+  },
+  recipeCard: {
+    width: 168,
+    height: 217,
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-evenly',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  horiFlex: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: "100%",
+  },
+  vertFlex: {
+    marginTop: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    width: "100%",
+    gap: 20,
+  },
+  title: {
+    fontSize: 30,
+    fontFamily: FontFamily.archivoBlackRegular,
+    color: 'white',
+  },
+  scrollCont: {
+    backgroundColor: "#841D06"
+  },
+  container: {
+    display: 'flex',
+    marginHorizontal: 20,
+    marginTop: 80,
   },
   favorites: {
     top: 75,
@@ -163,18 +270,6 @@ const styles = StyleSheet.create({
   },
   boxWidth: {
     width: 168,
-    position: "absolute",
-  },
-  recipeName: {
-    width: 161,
-    height: 48,
-    color: Color.black,
-    fontFamily: FontFamily.basicRegular,
-    fontSize: 14,
-    fontWeight: 'bold',
-    left: 4,
-    top: 158,
-    textAlign: "left",
     position: "absolute",
   },
   recipe1pic: {
@@ -355,11 +450,11 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
   },
-  icon:{
+  icon: {
     top: 185,
     left: 135,
   }
-  
+
 });
 
 export default Recipes;
