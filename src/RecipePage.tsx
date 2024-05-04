@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FlatList, StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { ref, onValue, off } from "firebase/database";
@@ -16,6 +16,7 @@ type Recipe = {
 };
 
 const RecipesScreen: React.FC = () => {
+  const unsubscribeListeners = useRef<(() => void)[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [favoritedRecipes, setFavoritedRecipes] = useState<string[]>([]);
@@ -24,50 +25,64 @@ const RecipesScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const [favoritedMap, setFavoritedMap] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    // Fetch the recipes from your realtime database
-    const recipesRef = ref(database, 'recipes');
-    const unsubscribeRecipes = onValue(recipesRef, (snapshot) => {
-      const rawData = snapshot.val();
-      const fetchedRecipes: Recipe[] = Object.keys(rawData).map((key) => ({
-        id: key,
-        name: rawData[key].name,
-        image_url: rawData[key].image_url,
-      }));
-      setRecipes(fetchedRecipes);
+  const cleanupListeners = () => {
+    unsubscribeListeners.current.forEach((unsubscribe) => unsubscribe());
+    unsubscribeListeners.current = [];
+  };
 
-      // Create a map of recipe IDs to their favorited state
-      const favoritedMap = fetchedRecipes.reduce((acc, recipe) => {
-        acc[recipe.id] = favoritedRecipes.includes(recipe.id);
-        return acc;
-      }, {});
+useEffect(() => {
+  // Fetch the recipes from your realtime database
+  const recipesRef = ref(database, 'recipes');
+  const unsubscribeRecipes = onValue(recipesRef, (snapshot) => {
+    const rawData = snapshot.val();
+    const fetchedRecipes: Recipe[] = Object.keys(rawData).map((key) => ({
+      id: key,
+      name: rawData[key].name,
+      image_url: rawData[key].image_url,
+    }));
+    setRecipes(fetchedRecipes);
 
-      // Set the favorited map as state
-      setFavoritedMap(favoritedMap);
-    });
+    // Create a map of recipe IDs to their favorited state
+    const favoritedMap = fetchedRecipes.reduce((acc, recipe) => {
+      acc[recipe.id] = favoritedRecipes.includes(recipe.id);
+      return acc;
+    }, {});
 
-    // Listen for auth state changes and fetch the user's favorited recipes from Firestore
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-        const userFavoritesRef = collection(db, 'users', user.uid, 'favorites');
-        const unsubscribeFavorites = onSnapshot(userFavoritesRef, (snapshot) => {
-          const favoriteIds = snapshot.docs.map((doc) => doc.id);
-          setFavoritedRecipes(favoriteIds);
-        });
-        return unsubscribeFavorites;
-      } else {
-        setUserId(null);
-        setFavoritedRecipes([]);
-        setFavoritedMap({}); // Reset the favorited map when the user logs out
-      }
-    });
+    // Set the favorited map as state
+    setFavoritedMap(favoritedMap);
+  });
 
-    return () => {
-      unsubscribeRecipes();
-      unsubscribeAuth();
-    };
-  }, [auth, db]);
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('Authenticated user ID:', user.uid);
+      setUserId(user.uid);
+      const userFavoritesRef = collection(db, 'users', user.uid, 'favorites');
+      const unsubscribeFavorites = onSnapshot(userFavoritesRef, (snapshot) => {
+        console.log('Fetching favorited recipes...');
+        const favoriteIds = snapshot.docs.map((doc) => doc.id);
+        setFavoritedRecipes(favoriteIds);
+      });
+
+      unsubscribeListeners.current.push(unsubscribeFavorites); // Store the cleanup function
+    } else {
+      console.log('User signed out');
+      setUserId(null);
+      setFavoritedRecipes([]);
+      setFavoritedMap({});
+
+      // Call the cleanup functions when the user logs out
+      unsubscribeListeners.current.forEach((unsubscribe) => unsubscribe());
+      unsubscribeListeners.current = []; // Reset the array after cleanup
+    }
+  });
+
+  unsubscribeListeners.current.push(unsubscribeRecipes);
+  unsubscribeListeners.current.push(unsubscribeAuth);
+
+  return () => {
+    cleanupListeners();
+  };
+}, [auth, db]);
 
   useEffect(() => {
     // Create a map of recipe IDs to their favorited state
@@ -85,20 +100,28 @@ const RecipesScreen: React.FC = () => {
       console.log('User must be logged in to save favorites');
       return;
     }
-
+  
     const userFavoritesRef = collection(db, 'users', userId, 'favorites');
     const recipeRef = doc(userFavoritesRef, recipe.id);
-
+  
     if (favoritedRecipes.includes(recipe.id)) {
       // Remove the recipe from favorites
-      await deleteDoc(recipeRef);
-      setFavoritedRecipes(favoritedRecipes.filter((id) => id !== recipe.id));
-      setFavoritedMap({ ...favoritedMap, [recipe.id]: false }); // Update favoritedMap
+      try {
+        await deleteDoc(recipeRef);
+        setFavoritedRecipes(favoritedRecipes.filter((id) => id !== recipe.id));
+        setFavoritedMap({ ...favoritedMap, [recipe.id]: false }); // Update favoritedMap
+      } catch (error) {
+        console.error('Error removing recipe from favorites:', error);
+      }
     } else {
       // Add the recipe to favorites
-      await setDoc(recipeRef, recipe);
-      setFavoritedRecipes([...favoritedRecipes, recipe.id]);
-      setFavoritedMap({ ...favoritedMap, [recipe.id]: true }); // Update favoritedMap
+      try {
+        await setDoc(recipeRef, recipe);
+        setFavoritedRecipes([...favoritedRecipes, recipe.id]);
+        setFavoritedMap({ ...favoritedMap, [recipe.id]: true }); // Update favoritedMap
+      } catch (error) {
+        console.error('Error adding recipe to favorites:', error);
+      }
     }
   };
 
