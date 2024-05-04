@@ -21,13 +21,19 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-maroon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ravenellope.umamicraft"
     },
     "web": {
       "favicon": "./assets/logo-maroon.png"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f97b8dbc-a15b-4962-b9fa-cc8283bcb2ad"
+      }
+    }
   }
 }

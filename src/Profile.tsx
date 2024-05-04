@@ -1,40 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { AntDesign, FontAwesome, MaterialCommunityIcons, Ionicons, Entypo, Feather } from '@expo/vector-icons';
-import { FontFamily } from "../GlobalStyles";
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { doc, getDoc, getFirestore, deleteDoc, onSnapshot } from 'firebase/firestore';
-import { getAuth, signOut, deleteUser } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
+import { doc, getFirestore, deleteDoc, onSnapshot } from 'firebase/firestore';
 import firebaseApp from '../firebase';
 
-// Define styles before they are used
-const Profilestyles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 35,
-    paddingBottom: 0,
+// Define styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 10,
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'maroon',
+    alignSelf: 'center',
+    marginTop: 50,
   },
   avatarContainer: {
-    borderRadius: 60,
-    width: 120,
-    height: 120,
-    marginBottom: 10,
-    position: 'relative',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 10,
   },
   avatar: {
-    width: '100%',
-    height: '100%',
+    width: 120,
+    height: 120,
     borderRadius: 60,
   },
   editIcon: {
@@ -45,44 +37,16 @@ const Profilestyles = StyleSheet.create({
     padding: 6,
     borderRadius: 20,
   },
-  headerText: {
-    fontFamily: FontFamily.archivoBlackRegular,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'maroon',
-    alignSelf: 'center',
-    marginTop: 50,
-  },
   name: {
-    fontFamily: FontFamily.orelegaOneRegular,
     fontSize: 22,
     fontWeight: 'bold',
     color: 'maroon',
+    textAlign: 'center',
   },
   username: {
-    fontFamily: FontFamily.orelegaOneRegular,
     fontSize: 16,
     color: 'maroon',
-  },
-  socialIcon: {
-    fontSize: 24,
-    color: 'maroon',
-    marginHorizontal: 10,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  nameSection: {
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  menuIcon: {
-    marginRight: 16,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    textAlign: 'center',
   },
   menuItem: {
     flexDirection: 'row',
@@ -92,23 +56,10 @@ const Profilestyles = StyleSheet.create({
     backgroundColor: '#fff',
     marginTop: 10,
   },
-  divider: {
-    height: 2,
-    backgroundColor: 'maroon',
-    marginVertical: 8,
-    alignSelf: 'center',
-    width: '85%',
-  },
-  iconContainer: {
-    marginRight: 20,
-    width: 24,
-    alignItems: 'center',
-  },
   menuItemText: {
-    fontFamily: FontFamily.didactGothicRegular,
+    flex: 1,
     fontSize: 13,
     color: 'maroon',
-    flex: 1,
   },
   menuItemDanger: {
     backgroundColor: '#ffcccc',
@@ -116,16 +67,6 @@ const Profilestyles = StyleSheet.create({
   menuItemTextDanger: {
     color: '#ff5c5c',
   },
-  footer: {
-    height: 50,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
-
-const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -157,7 +98,6 @@ const styles = StyleSheet.create({
 type MenuItemProps = {
   title: string;
   isDanger?: boolean;
-  showDivider?: boolean;
   onPress?: () => void;
 };
 
@@ -165,47 +105,48 @@ const ProfileScreen: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('Loading...');
   const [username, setUsername] = useState('Loading...');
-  const [unsubscribeFromFirestore, setUnsubscribeFromFirestore] = useState<() => void>(() => {});
   const navigation = useNavigation<StackNavigationProp<any>>();
   const db = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
-  const user = auth.currentUser;
+  const unsubscribeRef = useRef<() => void>();
 
   useEffect(() => {
-    if (user) {
-      const docRef = doc(db, "users", user.uid);
-
-      // Listen for real-time updates with onSnapshot
-      const unsubscribe = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          setName(userData.name);
-          setUsername(userData.username);
-        } else {
-          console.log("No such document!");
+    const authUnsubscribe = onAuthStateChanged(auth, user => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const snapshotUnsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setName(userData.name);
+            setUsername(userData.username);
+          } else {
+            console.log("No such document!");
+          }
+        }, (error) => {
+          console.error("Error getting document:", error);
+        });
+        unsubscribeRef.current = snapshotUnsubscribe;
+      } else {
+        setName('Loading...');
+        setUsername('Loading...');
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current(); // Unsubscribe when user logs out
         }
-      }, (error) => {
-        console.error("Error getting document:", error);
-      });
-
-      // Save the unsubscribe function so we can call it on logout
-      setUnsubscribeFromFirestore(() => unsubscribe);
-    }
-
-    // Return a function that unsubscribes from the listener when the component unmounts
-    return () => {
-      if (unsubscribeFromFirestore) {
-        unsubscribeFromFirestore();
       }
+    });
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current(); // Clean up on component unmount
+      }
+      authUnsubscribe();
     };
-  }, [user]);
+  }, [auth, db]);
 
   const handleLogout = async () => {
-    // Unsubscribe from Firestore listener before signing out
-    if (unsubscribeFromFirestore) {
-      unsubscribeFromFirestore();
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current(); // Ensure Firestore listeners are unsubscribed before logout
     }
-
     try {
       await signOut(auth);
       navigation.reset({
@@ -218,90 +159,58 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleDeleteAccount = async () => {
-    try {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        await deleteDoc(userDocRef);
-        await deleteUser(user);
-        setShowModal(true);
-      } else {
-        console.log('No user is currently signed in');
-      }
-    } catch (error) {
-      console.error('Error deleting account:', error);
+    if (auth.currentUser) {
+      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      await deleteDoc(userDocRef);
+      await deleteUser(auth.currentUser);
+      setShowModal(true);
+    } else {
+      console.log('No user is currently signed in');
     }
   };
 
-  const iconMapping = {
-    "Privacy Policy": { name: "settings-sharp", library: Ionicons },
-    "Terms of Service": { name: "file-text-o", library: FontAwesome },
-    "Umami Craft Community Guidelines": { name: "account-group-outline", library: MaterialCommunityIcons },
-    "Frequently Asked Questions": { name: "frequently-asked-questions", library: MaterialCommunityIcons },
-    "How-to-Use": { name: "help-circle", library: Feather },
-    "Log Out": { name: "logout", library: AntDesign },
-    "Delete Account": { name: "cross", library: Entypo },
-  };
+  const MenuItem = ({ title, isDanger, onPress }: MenuItemProps) => {
+    const iconMapping = {
+      "Privacy Policy": { name: "settings-sharp", library: Ionicons },
+      "Terms of Service": { name: "file-text-o", library: FontAwesome },
+      "Umami Craft Community Guidelines": { name: "account-group-outline", library: MaterialCommunityIcons },
+      "Frequently Asked Questions": { name: "frequently-asked-questions", library: MaterialCommunityIcons },
+      "How-to-Use": { name: "help-circle", library: Feather },
+      "Log Out": { name: "logout", library: AntDesign },
+      "Delete Account": { name: "cross", library: Entypo },
+    };
+    const { name: iconName, library: IconLibrary } = iconMapping[title];
 
-  const MenuItem: React.FC<MenuItemProps> = ({ title, isDanger, showDivider, onPress }) => {
-    const iconSize = 19;
-    const defaultIconDetails = { name: "right", library: AntDesign };
-    const { name: iconName, library: IconLibrary } = iconMapping[title] || defaultIconDetails;
-  
     return (
-      <View>
-        <TouchableOpacity
-          style={[Profilestyles.menuItem, isDanger ? Profilestyles.menuItemDanger : null]}
-          onPress={onPress}
-        >
-          <IconLibrary name={iconName} size={iconSize} color={isDanger ? "#ff5c5c" : "maroon"} style={Profilestyles.menuIcon} />
-          <Text style={[Profilestyles.menuItemText, isDanger ? Profilestyles.menuItemTextDanger : null]}>{title}</Text>
-        </TouchableOpacity>
-        {showDivider && <View style={Profilestyles.divider} />}
-      </View>
+      <TouchableOpacity style={[styles.menuItem, isDanger && styles.menuItemDanger]} onPress={onPress}>
+        <IconLibrary name={iconName} size={24} color={isDanger ? "#ff5c5c" : "maroon"} />
+        <Text style={[styles.menuItemText, isDanger && styles.menuItemTextDanger]}>{title}</Text>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <View style={Profilestyles.container}>
-      <ScrollView style={Profilestyles.container}>
-        <View>
-          <Text style={Profilestyles.headerText}>My Profile</Text>
+    <View style={styles.container}>
+      <ScrollView>
+        <Text style={styles.headerText}>My Profile</Text>
+        <View style={styles.avatarContainer}>
+          <Image source={require('../assets/profile.png')} style={styles.avatar} />
+          <TouchableOpacity style={styles.editIcon} onPress={() => navigation.navigate('EditProfile')}>
+            <AntDesign name="edit" size={24} color="maroon" />
+          </TouchableOpacity>
         </View>
-        <View style={Profilestyles.avatarSection}>
-          <View style={Profilestyles.avatarContainer}>
-            <Image
-              source={require('../assets/profile.png')}
-              style={Profilestyles.avatar}
-            />
-            <TouchableOpacity style={Profilestyles.editIcon} onPress={() => navigation.navigate('EditProfile')}>
-  <AntDesign name="edit" size={24} color="maroon" />
-</TouchableOpacity>
-          </View>
-          <Text style={Profilestyles.name}>{name}</Text>
-          <Text style={Profilestyles.username}>@{username}</Text>
-        </View>
-        <View style={Profilestyles.socialContainer}>
-          <FontAwesome name="facebook-f" size={24} style={Profilestyles.socialIcon} />
-          <FontAwesome name="instagram" size={24} style={Profilestyles.socialIcon} />
-          <Feather name="twitter" size={24} style={Profilestyles.socialIcon} />
-        </View>
-        <View>
-          <MenuItem title="Privacy Policy" />
-          <MenuItem title="Terms of Service" showDivider />
-          <MenuItem title="Umami Craft Community Guidelines" showDivider />
-          <MenuItem title="Frequently Asked Questions" />
-          <MenuItem title="How-to Use" showDivider />
-          <MenuItem title="Log Out" onPress={handleLogout} />
-          <MenuItem title="Delete Account" isDanger onPress={handleDeleteAccount} />
-        </View>
-        <View style={Profilestyles.footer} />
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.username}>@{username}</Text>
+        <MenuItem title="Privacy Policy" onPress={() => {}} />
+        <MenuItem title="Terms of Service" onPress={() => {}} />
+        <MenuItem title="Umami Craft Community Guidelines" onPress={() => {}} />
+        <MenuItem title="Frequently Asked Questions" onPress={() => {}} />
+        <MenuItem title="How-to-Use" onPress={() => {}} />
+        <MenuItem title="Log Out" isDanger onPress={handleLogout} />
+        <MenuItem title="Delete Account" isDanger onPress={handleDeleteAccount} />
       </ScrollView>
-  
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="fade"
-      >
+
+      <Modal visible={showModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>Account deleted successfully</Text>
