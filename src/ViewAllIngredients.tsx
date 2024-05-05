@@ -1,413 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TextInput, Pressable, TouchableOpacity } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { useNavigation, ParamListBase } from "@react-navigation/native";
-import { Color, FontFamily } from "../GlobalStyles";
-import { FontAwesome } from '@expo/vector-icons';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Button } from 'react-native';
+import { useNavigation, NavigationProp, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import firebaseApp from '.././firebase';
-import { ScrollView } from 'react-native-gesture-handler';
 
-const ViewAllIngredients: React.FC = () => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+type RootStackParamList = {
+  ViewAllIngredients: undefined;
+  SearchResultsIngredients: { searchQuery: string[] };
+};
+
+type ViewAllIngredientsScreenRouteProp = RouteProp<RootStackParamList, 'ViewAllIngredients'>;
+type ViewAllIngredientsScreenNavigationProp = NavigationProp<RootStackParamList, 'ViewAllIngredients'>;
+
+const ingredients = [
+  { name: 'Bacon', image: require('../assets/bacon.png') },
+  { name: 'Bell Pepper', image: require('../assets/pepper.png') },
+  { name: 'Black Pepper', image: require('../assets/blackpepper.png') },
+  { name: 'Broccoli', image: require('../assets/broccoli.png') },
+  { name: 'Carrot', image: require('../assets/carrot.png') },
+  { name: 'Cheese', image: require('../assets/cheese.png') },
+  { name: 'Chicken', image: require('../assets/chicken.png') },
+  { name: 'Chili Pepper', image: require('../assets/chili.png') },
+  { name: 'Corn', image: require('../assets/corn.png') },
+  { name: 'Egg', image: require('../assets/egg.png') },
+  { name: 'Garlic', image: require('../assets/garlic.png') },
+  { name: 'Milk', image: require('../assets/milk.png') },
+  { name: 'Mushroom', image: require('../assets/mushroom.png') },
+  { name: 'Onion', image: require('../assets/onion.png') },
+  { name: 'Pork', image: require('../assets/steak.png') },  // Check if this should be pork.png
+  { name: 'Salmon', image: require('../assets/salmon.png') },
+  { name: 'Salt', image: require('../assets/salt.png') },
+  { name: 'Tofu', image: require('../assets/tofu.png') },
+];
+
+const ViewAllIngredients = () => {
+  const navigation = useNavigation<ViewAllIngredientsScreenNavigationProp>();
+  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+
+  const toggleIngredient = (ingredientName: string) => {
+    if (selectedIngredients.includes(ingredientName)) {
+      setSelectedIngredients(selectedIngredients.filter(item => item !== ingredientName));
+    } else {
+      setSelectedIngredients([...selectedIngredients, ingredientName]);
+    }
+  };
+
+  const handleSearch = () => {
+    navigation.navigate('SearchResultsIngredients', { searchQuery: selectedIngredients });
+  };
 
   return (
-    <View style={styles.color}>
-      <ScrollView>
-
-        <View style={styles.home}>
-
-          <View style={styles.inline}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={36} color="#841D06" />
-            </TouchableOpacity>
-          </View>
-
-          <View>
-            <Text style={styles.h1}>View All Ingredients</Text>
-          </View>
-
-          <View style={styles.searchBarContainer}>
-            <TextInput
-              placeholder='Search Ingredients'
-              style={styles.textInput} />
-            <FontAwesome name="search"
-              style={styles.searchBtn}
-              size={24}
-              color='#841D06' />
-          </View>
-
-          <View>
-            <Text style={[styles.h2]}>
-              Search by Ingredients
-            </Text>
-          </View>
-
-          <View style={styles.ingredientList}>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Egg.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Egg</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/onion.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Onion</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/garlic.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Garlic</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Steak.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Steak</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/cheese.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Cheese</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/bread.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Bread</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Milk.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Milk</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/butter.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Butter</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Carrot.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Carrot</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Banana.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Banana</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Strawberry.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Strawberry</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Potato.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Potato</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Rice.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Rice</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Avocado.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Avocado</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Bacon.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Bacon</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Tomato.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Tomato</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/broccoli.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Broccoli</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/chili.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Chili Pepper</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/flour.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Flour</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/mayo.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Mayonnaise</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/Salmon.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Salmon</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/blackpepper.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Black Pepper</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/cannedtuna.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Canned Tuna</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/salt.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Salt</Text>
-              </View>
-
-            </View>
-
-            <View style={styles.row}>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/tofu.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Tofu</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/sausage.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Sausage</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/mushroom.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Mushroom</Text>
-              </View>
-
-              <View style={styles.ingredient}>
-                <Image
-                  style={styles.ingredientIcon}
-                  source={require("../assets/corn.png")}
-                />
-                <Text style={[styles.ingredientsText]}>Corn</Text>
-              </View>
-
-            </View>
-
-          </View>
-
-        </View>
-
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#000" />
+      </TouchableOpacity>
+      <Text style={styles.header}>View All Ingredients</Text>
+      <ScrollView contentContainerStyle={styles.ingredientsList}>
+        {ingredients.map((item, index) => (
+          <TouchableOpacity key={index} style={[
+            styles.ingredientItem,
+            selectedIngredients.includes(item.name) ? styles.selected : null
+          ]} onPress={() => toggleIngredient(item.name)}>
+            <Image source={item.image} style={styles.ingredientImage} />
+            <Text style={styles.ingredientText}>{item.name}</Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
-
-      <View style={styles.floatButton}>
-        <Text style={styles.floatText}>
-          Search with selected ingredients
-        </Text>
-      </View>
-
+      {selectedIngredients.length > 0 && (
+        <Button title="Search with selected ingredients" onPress={handleSearch} />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  color: {
+  container: {
+    flex: 1,
     backgroundColor: 'white',
-    height: "100%",
+    paddingTop: 50,
   },
-  floatText: {
-    color: Color.white,
+  backButton: {
+    marginLeft: 20,
+    marginBottom: 20,
+  },
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  floatButton: {
-    display: 'flex',
-    position: 'absolute',
-    height: 54,
-    width: 340,
-    top: 800,
-    left: 37,
+  ingredientsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-around',
+    padding: 20,
+  },
+  ingredientItem: {
+    width: 90,
+    height: 90,
     alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: 'linear-gradient(180deg, rgba(241,128,71,1) 0%, rgba(222,80,8,1) 100%)',
-  },
-  home: {
-    display: 'flex',
-    flexDirection: 'column',
-    paddingHorizontal: 20,
-    paddingTop: 72,
-    gap: 24,
-    backgroundColor: 'white',
-    height: "100%",
-  },
-  inline: {
-    display: 'flex',
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    paddingBottom: 16,
-  },
-  ingredientList: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    flexDirection: 'column',
-  },
-  h1: {
-    color: Color.maroon,
-    fontFamily: FontFamily.archivoBlackRegular,
-    fontSize: 32,
-    textAlign: "left",
-  },
-  textInput: {
-    paddingHorizontal: 20,
-    backgroundColor: Color.white,
-    width: "85%",
-    borderRadius: 24,
-    fontSize: 15,
-    height: 44,
-  },
-  searchBarContainer: {
     justifyContent: 'center',
-    alignItems: 'center',
-    display: 'flex',
-    width: "100%",
-    flexDirection: 'row',
-    gap: 10,
+    margin: 5,
+    borderRadius: 45,
+    backgroundColor: '#f0f0f0',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  selected: {
+    borderColor: 'orange',
     borderWidth: 2,
-    borderRadius: 24,
-    borderColor: Color.maroon,
   },
-  searchBtn: {
-    backgroundColor: Color.white,
-    padding: 8.5,
-    borderRadius: 24,
-    right: 16,
+  ingredientImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
-  h2: {
-    fontFamily: FontFamily.archivoBlackRegular,
-    fontSize: 20,
-    color: Color.maroon,
-    textAlign: "left",
-  },
-  searchIngredients: {
-    left: 1,
-    width: 265,
-    height: 25,
-    color: Color.maroon,
-  },
-  ingredientsText: {
-    textAlign: "center",
-    color: Color.darkGray,
-    fontFamily: FontFamily.basicRegular,
-    fontSize: 14.5,
+  ingredientText: {
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: 'center',
+    color: '#333',
   },
 });
 

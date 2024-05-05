@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getAuth, updatePassword } from 'firebase/auth';
 import firebaseApp from '../firebase';
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const EditProfileStyles = StyleSheet.create({
   container: {
@@ -97,10 +99,13 @@ const EditProfileStyles = StyleSheet.create({
 });
 
 const EditProfile: React.FC = () => {
+  const [firebaseProfilePictureURL, setFirebaseProfilePictureURL] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
   const navigation = useNavigation();
   const db = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
@@ -111,18 +116,18 @@ const EditProfile: React.FC = () => {
       if (user) {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
-
+  
         if (docSnap.exists()) {
           const userData = docSnap.data();
           setName(userData.name ?? '');
           setUsername(userData.username ?? '');
-          // Do not fetch the password. It's not stored in Firestore for security reasons.
+          setFirebaseProfilePictureURL(userData.profilePicture?.imageURL ?? null);
         } else {
           console.log('No such document!');
         }
       }
     };
-
+  
     fetchUserData();
   }, [user]);
 
@@ -130,33 +135,75 @@ const EditProfile: React.FC = () => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
   };
+
+  const handleImagePicker = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   
+    if (status !== 'granted') {
+      Alert.alert('Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      setPreviewImageUri(result.assets[0].uri); // Update previewImageUri with the selected image
+    }
+  };
+
   const saveProfile = async () => {
-       // Validate the password if it's not empty
-       if (password && !validatePassword(password)) {
-        Alert.alert('Invalid Password', 'Password must be at least 8 characters long and include at least one uppercase letter, one number, and one special character.');
-        return;
-      }
+    if (password && !validatePassword(password)) {
+      Alert.alert('Invalid Password', 'Password must be at least 8 characters long and include at least one uppercase letter, one number, and one special character.');
+      return;
+    }
+
     setShowModal(false);
+
     try {
+      if (imageUri) {
+        const storage = getStorage(firebaseApp);
+        console.log('User:', user);
+        console.log('User UID:', user?.uid);
+        const storageRef = ref(storage, `profile-pictures/${user?.uid}/profile_picture.jpg`);
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        await uploadBytes(storageRef, blob);
+
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const userDocRef = doc(db, 'users', user?.uid || '');
+        await updateDoc(userDocRef, {
+          'profilePicture.imageURL': downloadURL,
+        });
+
+        setPreviewImageUri(null);
         
-      if (password.trim().length > 0) {
-        // Update the password
-        await updatePassword(user, password);
       }
-      // Update the user document in Firestore
-      const userDocRef = doc(db, 'users', user.uid);
+
+      if (password.trim().length > 0) {
+        await updatePassword(user!, password);
+      }
+
+      const userDocRef = doc(db, 'users', user?.uid || '');
       await updateDoc(userDocRef, {
         name: name,
         username: username,
       });
+
       Alert.alert('Profile Updated', 'Your profile has been updated successfully.');
       navigation.goBack();
     } catch (error) {
-      console.error(error);
+      console.error('Error uploading profile picture:', error);
       Alert.alert('Update Failed', 'There was an issue updating your profile.');
     }
   };
+
 
   return (
     <ScrollView style={EditProfileStyles.container}>
@@ -167,11 +214,17 @@ const EditProfile: React.FC = () => {
         <Text style={EditProfileStyles.headerText}>Edit Profile</Text>
       </View>
       <View style={EditProfileStyles.avatarContainer}>
-        <Image
-          source={require('../assets/profile.png')}
-          style={EditProfileStyles.avatar}
-        />
-        <TouchableOpacity style={{ marginTop: 10 }}>
+      <Image
+  source={
+    previewImageUri // First check if previewImageUri is available
+      ? { uri: previewImageUri }
+      : firebaseProfilePictureURL // If not, check for firebaseProfilePictureURL
+      ? { uri: firebaseProfilePictureURL }
+      : require('../assets/profile.png') // If neither, use the default profile image
+  }
+  style={EditProfileStyles.avatar}
+/>
+        <TouchableOpacity onPress={handleImagePicker} style={{ marginTop: 10 }}>
           <Text style={{ color: 'maroon' }}>Change Profile Photo</Text>
         </TouchableOpacity>
       </View>

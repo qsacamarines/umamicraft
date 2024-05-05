@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Modal, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ref, get } from 'firebase/database';
-import { database } from '../firebase'; // Make sure this path matches your Firebase configuration file
+import { database } from '../firebase';
+import { getFirestore, doc, onSnapshot, deleteDoc, setDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 type RecipeNavigatorParamList = {
-  OneRecipePage: { recipeId: string }; // Define other screens and their params in a similar manner
+  OneRecipePage: { recipeId: string };
 };
 
 const OneRecipePage = () => {
   const [recipe, setRecipe] = useState(null);
-  const [isHeartFull, setIsHeartFull] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [isRemoveModalVisible, setRemoveModalVisible] = useState(false);
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RecipeNavigatorParamList, 'OneRecipePage'>>();
   const recipeId = route.params.recipeId;
+  const unsubscribeListeners = useRef<(() => void)[]>([]);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -25,6 +28,7 @@ const OneRecipePage = () => {
         const snapshot = await get(recipeRef);
         if (snapshot.exists()) {
           setRecipe(snapshot.val());
+          checkFavoriteStatus();
         } else {
           console.log('Recipe does not exist.');
         }
@@ -33,17 +37,60 @@ const OneRecipePage = () => {
       }
     };
 
+    const checkFavoriteStatus = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        const db = getFirestore();
+        const userFavoritesRef = doc(db, 'users', user.uid, 'favorites', recipeId);
+
+        const unsubscribeFavorite = onSnapshot(userFavoritesRef, (snapshot) => {
+          setIsFavorited(snapshot.exists());
+        });
+
+        unsubscribeListeners.current.push(unsubscribeFavorite);
+      }
+    };
+
     fetchRecipe();
+
+    return () => {
+      unsubscribeListeners.current.forEach((unsubscribe) => unsubscribe());
+      unsubscribeListeners.current = [];
+    };
   }, [recipeId]);
 
   const handleBackClick = () => {
     navigation.goBack();
   };
 
-  const handleHeartClick = () => {
-    setIsHeartFull(!isHeartFull);
-    setModalVisible(!isHeartFull);
-    setRemoveModalVisible(isHeartFull);
+  const handleHeartClick = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      const db = getFirestore();
+      const userFavoritesRef = doc(db, 'users', user.uid, 'favorites', recipeId);
+
+      if (isFavorited) {
+        try {
+          await deleteDoc(userFavoritesRef);
+          setIsFavorited(false);
+        } catch (error) {
+          console.error('Error removing from favorites:', error);
+        }
+      } else {
+        try {
+          await setDoc(userFavoritesRef, recipe);
+          setIsFavorited(true);
+        } catch (error) {
+          console.error('Error adding to favorites:', error);
+        }
+      }
+    }
+    setModalVisible(!isFavorited);
+    setRemoveModalVisible(isFavorited);
   };
 
   const closeModal = () => {
@@ -52,39 +99,54 @@ const OneRecipePage = () => {
   };
 
   if (!recipe) {
-    return <View style={styles.container}><Text>Loading...</Text></View>;
+    return <View><Text>Loading...</Text></View>;
   }
 
+  const { name, image_url, ingredients, instructions, category } = recipe;
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView>
+      {/* Navigation header */}
       <View style={styles.navigationHeader}>
+        {/* Back button */}
         <TouchableOpacity onPress={handleBackClick}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.recipeName}>{recipe?.name || 'Loading...'}</Text>
+        {/* Recipe name */}
+        <Text style={styles.recipeName}>{name}</Text>
+        {/* Heart icon */}
         <TouchableOpacity onPress={handleHeartClick}>
           <Ionicons
-            name={isHeartFull ? 'heart' : 'heart-outline'}
+            name={isFavorited ? 'heart' : 'heart-outline'}
             size={24}
             color="#fff"
           />
         </TouchableOpacity>
       </View>
 
-      <Image source={{ uri: recipe.image_url }} style={styles.recipeImage} />
+      {/* Recipe image */}
+      <Image source={{ uri: image_url }} style={styles.recipeImage} />
 
+      {/* Recipe details */}
       <View style={styles.details}>
-        <Text style={styles.recipeTitle}>{recipe.name}</Text>
+        {/* Categories */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Categories:</Text>
+          <Text>{category.join(', ')}</Text>
+        </View>
+
+        {/* Ingredients */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ingredients:</Text>
-          {recipe.ingredients.map((item, index) => (
+          {ingredients.map((item, index) => (
             <Text key={index}>{`${item.quantity} ${item.unit} ${item.ingredient}`}</Text>
           ))}
         </View>
 
+        {/* Instructions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Instructions:</Text>
-          {recipe.instructions.map((item, index) => (
+          {instructions.map((item, index) => (
             <Text key={index}>{`${index + 1}. ${item.instruction}`}</Text>
           ))}
         </View>

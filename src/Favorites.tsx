@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Text, StyleSheet, View, Image } from "react-native";
+import { Text, StyleSheet, View, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, onSnapshot } from "firebase/firestore";
 import { ref, onValue, getDatabase } from "firebase/database";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 type Recipe = {
   id: string;
@@ -12,12 +13,20 @@ type Recipe = {
   image_url: string;
 };
 
+type RootStackParamList = {
+  OneRecipePage: { recipeId: string };
+  Favorites: { category: string };
+};
+
+type ScreenNavigationProp = StackNavigationProp<RootStackParamList, 'OneRecipePage'>;
+
 const FavoritesPage = () => {
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const auth = getAuth();
   const db = getFirestore();
   const realtimeDB = getDatabase();
   const unsubscribes = useRef<(() => void)[]>([]);
+  const navigation = useNavigation<ScreenNavigationProp>();  // Typed correctly here
 
   useEffect(() => {
     const authUnsub = onAuthStateChanged(auth, user => {
@@ -65,19 +74,24 @@ const FavoritesPage = () => {
     });
   };
 
+  const handlePressRecipe = (recipeId: string) => {
+    navigation.navigate('OneRecipePage', { recipeId });  // Navigate to OneRecipePage with the recipeId
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Favorites</Text>
       {favorites.map(recipe => (
-        <View key={recipe.id} style={styles.recipeCard}>
-          <Image style={styles.recipeImage} source={{ uri: recipe.image_url }} />
-          <Text style={styles.recipeName}>{recipe.name}</Text>
-        </View>
+        <TouchableOpacity key={recipe.id} onPress={() => handlePressRecipe(recipe.id)}>
+          <View style={styles.recipeCard}>
+            <Image style={styles.recipeImage} source={{ uri: recipe.image_url }} />
+            <Text style={styles.recipeName}>{recipe.name}</Text>
+          </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
