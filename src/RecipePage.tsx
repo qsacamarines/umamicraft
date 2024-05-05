@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FlatList, StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
+import { FlatList, StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { ref, onValue, off } from "firebase/database";
 import { database } from '../firebase'; // Your configured firebase file
@@ -157,21 +157,24 @@ useEffect(() => {
       </View>
     </TouchableOpacity>
   );
+
  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>RECIPES</Text>
-      <View style={styles.recipeList}>
+      <ScrollView horizontal={false} contentContainerStyle={styles.recipeList}>
         {recipes.map((recipe) => (
           <View key={recipe.id} style={styles.recipeCardContainer}>
             {renderItem({ item: recipe })}
           </View>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
  };
  
+ const screenWidth = Dimensions.get('window').width;
+
  const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -189,9 +192,10 @@ useEffect(() => {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    paddingBottom: 50, 
   },
   recipeCardContainer: {
-    width: "70%",
+    width: '68%', // Adjusted width for two columns
     marginBottom: 20,
   },
   recipeCard: {
