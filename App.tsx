@@ -15,6 +15,10 @@ import MoreScreen from "./src/More"; // Import the More component
 import RecipePage from "./src/RecipePage"; // Import the Recipe component
 import OneRecipePage from "./src/oneRecipePage"; 
 import EditProfile from './src/editProfile';
+import ViewAllIngredients from './src/ViewAllIngredients';
+import CategSearchResults from './src/SearchResultsCateg';
+import IngredientsSearchResults from './src/SearchResultsIngredients';
+import NameSearchResults from './src/SearchResultsName';
 import { useFonts } from "expo-font";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
@@ -161,7 +165,15 @@ const App: React.FC = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" component={MyTabs} />
-        <Stack.Screen name="OneRecipePage" component={OneRecipePage} />
+        <Stack.Screen name="ViewAllIngredients" component={ViewAllIngredients} />  
+        <Stack.Screen name="SearchResultsCateg" component={CategSearchResults} />
+        <Stack.Screen name="SearchResultsIngredients" component={IngredientsSearchResults} />
+        <Stack.Screen name="SearchResultsName" component={NameSearchResults} />
+        <Stack.Screen
+          name="OneRecipePage"
+          component={OneRecipePage}
+          initialParams={{ recipeId: '' }}
+        />
         <Stack.Screen name="EditProfile" component={EditProfile} />
       </Stack.Navigator>
     </NavigationContainer>

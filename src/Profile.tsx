@@ -4,7 +4,8 @@ import { AntDesign, FontAwesome, MaterialCommunityIcons, Ionicons, Entypo, Feath
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getAuth, onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
-import { doc, getFirestore, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getFirestore, deleteDoc, onSnapshot, collection } from 'firebase/firestore';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import firebaseApp from '../firebase';
 
 // Define styles
@@ -105,9 +106,11 @@ const ProfileScreen: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('Loading...');
   const [username, setUsername] = useState('Loading...');
+  const [profilePictureURL, setProfilePictureURL] = useState<string | null>(null);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const db = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
+  const storage = getStorage(firebaseApp);
   const unsubscribeRef = useRef<() => void>();
 
   useEffect(() => {
@@ -119,34 +122,49 @@ const ProfileScreen: React.FC = () => {
             const userData = docSnap.data();
             setName(userData.name);
             setUsername(userData.username);
+  
+            // Fetch profile picture from Firebase Storage
+            const storageRef = ref(storage, `profile-pictures/${user.uid}/profile_picture.jpg`);
+            getDownloadURL(storageRef)
+              .then(url => {
+                setProfilePictureURL(url);
+              })
+              .catch(error => {
+                console.error('Error fetching profile picture:', error);
+                setProfilePictureURL(null);
+              });
           } else {
             console.log("No such document!");
           }
         }, (error) => {
           console.error("Error getting document:", error);
         });
+  
         unsubscribeRef.current = snapshotUnsubscribe;
       } else {
         setName('Loading...');
         setUsername('Loading...');
+        setProfilePictureURL(null);
         if (unsubscribeRef.current) {
           unsubscribeRef.current(); // Unsubscribe when user logs out
         }
       }
     });
-
+  
     return () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current(); // Clean up on component unmount
       }
       authUnsubscribe();
     };
-  }, [auth, db]);
+  }, [auth, db, storage]);
 
   const handleLogout = async () => {
     if (unsubscribeRef.current) {
-      unsubscribeRef.current(); // Ensure Firestore listeners are unsubscribed before logout
+      unsubscribeRef.current(); // Unsubscribe from Firestore listener before logout
+      unsubscribeRef.current = null; // Reset the reference
     }
+  
     try {
       await signOut(auth);
       navigation.reset({
@@ -194,7 +212,14 @@ const ProfileScreen: React.FC = () => {
       <ScrollView>
         <Text style={styles.headerText}>My Profile</Text>
         <View style={styles.avatarContainer}>
-          <Image source={require('../assets/profile.png')} style={styles.avatar} />
+          <Image
+            source={
+              profilePictureURL
+                ? { uri: profilePictureURL }
+                : require('../assets/profile.png')
+            }
+            style={styles.avatar}
+          />
           <TouchableOpacity style={styles.editIcon} onPress={() => navigation.navigate('EditProfile')}>
             <AntDesign name="edit" size={24} color="maroon" />
           </TouchableOpacity>

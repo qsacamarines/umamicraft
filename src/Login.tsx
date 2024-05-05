@@ -134,9 +134,7 @@ const LoginPage: React.FC = () => {
           </View>
         </View>
 
-        <View style={{alignItems: 'center'}}>
-          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#841D06', letterSpacing: 2, fontFamily: FontFamily.poppinsRegular }}>Forgot Password?</Text>
-        </View>
+
         
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10}}>
           <Text style={{color: 'black', fontFamily: FontFamily.didactGothicRegular}}>Don't have an account yet?</Text>

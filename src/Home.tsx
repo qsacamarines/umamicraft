@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TextInput, Pressable } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { useNavigation, ParamListBase } from "@react-navigation/native";
+import { useNavigation, ParamListBase, NavigationProp, RouteProp } from "@react-navigation/native";
 import { Color, FontFamily } from "../GlobalStyles";
 import { FontAwesome } from '@expo/vector-icons';
 import { doc, getDoc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebaseApp from '.././firebase';
 
+const categoryImages = {
+  shoyu: require('../assets/shoyu.png'),
+  shio: require('../assets/shio.png'),
+  miso: require('../assets/miso.png'),
+  tonkotsu: require('../assets/tonkotsu.png'),
+};
+
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const [name, setName] = useState('Loading...');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
@@ -43,6 +51,12 @@ const HomeScreen: React.FC = () => {
     };
   }, []);
 
+  const handleSearch = () => {
+    // Navigate to SearchResultsName with the current search query
+    navigation.navigate("SearchResultsName", { searchQuery });
+  };
+
+
   return (
     <View style={styles.home}>
       {/* Header */}
@@ -50,133 +64,95 @@ const HomeScreen: React.FC = () => {
       <Text style={styles.welcome}>Welcome,</Text>
       <Text style={styles.carlo}>{ name || 'Guest' }!</Text>
 
-      {/* Searchbar */}
+      {/* Search Bar */}
       <View style={styles.searchBarContainer}>
         <TextInput 
-        placeholder = 'Search recipes'
-        style={styles.textInput}/>
-        <FontAwesome name="search"
-        style={styles.searchBtn}
-        size={24} 
-        color='#841D06' />
+          placeholder="Search recipes"
+          style={styles.textInput}
+          onChangeText={setSearchQuery} 
+          value={searchQuery} 
+        />
+        <Pressable onPress={handleSearch} style={styles.searchBtn}>
+          <FontAwesome name="search" size={24} color='#841D06' />
+        </Pressable>
       </View>
 
       {/* Search by Ingredients */}
       </View>
       <View style={[styles.searchByIngredientsContainer, styles.ingredientsLayout]}>
-        <Text style={[styles.searchIngredients, styles.titles]}>
-          Search by Ingredients
-        </Text>
-        <Pressable
-          style={styles.viewAll}
-          onPress={() => navigation.navigate("ViewAllIngredients")}
-        >
-          <Text style={[styles.underlined, styles.ingredientsText]}>View all</Text>
-        </Pressable>
-        <View
-          style={[styles.rowOfIngredientsWrapper, styles.ingredientsLayout]}
-        >
-          <View>
-          <View style={[styles.eggPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                source={require("../assets/circle1.png")}
-              />
-              <Image
-                style={[styles.eggIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/egg.png")}
-              />
-              <Text style={[styles.eggText, styles.ingredientsText]}>Egg</Text>
-            </View>
+  <Text style={[styles.searchIngredients, styles.titles]}>
+    Search by Ingredients
+  </Text>
+  <Pressable
+    style={styles.viewAll}
+    onPress={() => navigation.navigate("ViewAllIngredients")}
+  >
+    <Text style={[styles.underlined, styles.ingredientsText]}>View all</Text>
+  </Pressable>
+  <View style={[styles.rowOfIngredientsWrapper, styles.ingredientsLayout]}>
+    <View>
+      {/* Egg */}
+      <Pressable style={[styles.eggPosition, styles.ingredientsIconsLayout1]}
+        onPress={() => navigation.navigate("SearchResultsIngredients", { searchQuery: ['egg'] })}>
+        <Image style={styles.circlesLayout}
+          source={require("../assets/circle1.png")} />
+        <Image style={[styles.eggIcon, styles.ingredientsIconsLayout2]}
+          source={require("../assets/egg.png")} />
+        <Text style={[styles.eggText, styles.ingredientsText]}>Egg</Text>
+      </Pressable>
 
-            <View style={[styles.garlicPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle2.png")}
-              />
-              <Image
-                style={[styles.garlicIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/garlic.png")}
-              />
-              <Text style={[styles.garlicText, styles.ingredientsText]}>Garlic</Text>
-            </View>
+      {/* Garlic */}
+      <Pressable style={[styles.garlicPosition, styles.ingredientsIconsLayout1]}
+        onPress={() => navigation.navigate("SearchResultsIngredients", { searchQuery: ['garlic'] })}>
+        <Image style={styles.circlesLayout}
+          source={require("../assets/circle2.png")} />
+        <Image style={[styles.garlicIcon, styles.ingredientsIconsLayout2]}
+          source={require("../assets/garlic.png")} />
+        <Text style={[styles.garlicText, styles.ingredientsText]}>Garlic</Text>
+      </Pressable>
 
-            <View style={[styles.onionPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle3.png")}
-              />
-              <Image
-                style={[styles.onionIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/onion.png")}
-              />
-              <Text style={[styles.onionText, styles.ingredientsText]}>Onion</Text>
-            </View>
+      {/* Onion */}
+      <Pressable style={[styles.onionPosition, styles.ingredientsIconsLayout1]}
+        onPress={() => navigation.navigate("SearchResultsIngredients", { searchQuery: ['onion'] })}>
+        <Image style={styles.circlesLayout}
+          source={require("../assets/circle3.png")} />
+        <Image style={[styles.onionIcon, styles.ingredientsIconsLayout2]}
+          source={require("../assets/onion.png")} />
+        <Text style={[styles.onionText, styles.ingredientsText]}>Onion</Text>
+      </Pressable>
 
-            <View style={[styles.porkPosition, styles.ingredientsIconsLayout1]}>
-              <Image
-                style={styles.circlesLayout}
-                 
-                source={require("../assets/circle4.png")}
-              />
-              <Image
-                style={[styles.porkIcon, styles.ingredientsIconsLayout2]}
-                 
-                source={require("../assets/pork.png")}
-              />
-              <Text style={[styles.porkText, styles.ingredientsText]}>Pork</Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      {/* Pork */}
+      <Pressable style={[styles.porkPosition, styles.ingredientsIconsLayout1]}
+        onPress={() => navigation.navigate("SearchResultsIngredients", { searchQuery: ['pork'] })}>
+        <Image style={styles.circlesLayout}
+          source={require("../assets/circle4.png")} />
+        <Image style={[styles.porkIcon, styles.ingredientsIconsLayout2]}
+          source={require("../assets/pork.png")} />
+        <Text style={[styles.porkText, styles.ingredientsText]}>Pork</Text>
+      </Pressable>
+    </View>
+  </View>
+</View>
+
 
       {/* Search by Category */}
       <View style={styles.searchByCategory}>
-        <Text style={styles.titles}>
-          Search by Category
-        </Text>
-        <View style={[styles.shoyu, styles.categLayout]}>
-          <View style={styles.categContainer} />
-          <Text style={styles.categName}>Shoyu</Text>
-          <Image
-            style={styles.categIcon}
-            source={require("../assets/shoyu.png")}
-          />
-        </View>
-
-        <View style={[styles.shio, styles.categLayout]}>
-          <View style={styles.categContainer} />
-          <Text style={styles.categName}>Shio</Text>
-          <Image
-            style={styles.categIcon}
-            source={require("../assets/shio.png")}
-          />
-        </View>
-
-        <View style={[styles.miso, styles.categLayout]}>
-          <View style={styles.categContainer} />
-          <Text style={styles.categName}>Miso</Text>
-          <Image
-            style={[styles.categIcon]}
-            source={require("../assets/miso.png")}
-          />
-        </View>
-        
-        <View style={[styles.tonkotsu, styles.categLayout]}>
-          <View style={styles.categContainer} />
-          <Text style={styles.categName}>Tonkotsu</Text>
-          <Image
-            style={[styles.categIcon]}
-            source={require("../assets/tonkotsu.png")}
-          />
-        </View>
-      </View>
-
+  <Text style={styles.titles}>Search by Category</Text>
+  {Object.keys(categoryImages).map((category, index) => (
+    <Pressable
+      key={index}
+      style={[styles[category], styles.categLayout]}
+      onPress={() => navigation.navigate("SearchResultsCateg", { category })}
+    >
+      <View style={styles.categContainer} />
+      <Text style={styles.categName}>{category}</Text>
+      <Image
+        style={styles.categIcon}
+        source={categoryImages[category]}
+      />
+    </Pressable>
+  ))}
+</View>
       {/* Card */}
       <View style={[styles.card, styles.cardPosition]}>
         <View style={[styles.cardChild]} />
@@ -506,15 +482,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
-
-
-
-
-
-
-  
-
-  
-
-
