@@ -3,6 +3,7 @@ import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator, TouchableOp
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { NavigationProp, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Color, FontFamily } from '../GlobalStyles';
 
 // Define the navigation parameter types
 type RootStackParamList = {
@@ -28,17 +29,21 @@ const CategSearchResults = ({
   useEffect(() => {
     const db = getDatabase();
     const recipesRef = ref(db, 'recipes');
-    const unsubscribe = onValue(recipesRef, (snapshot) => {
-      const recipesList = [];
-      snapshot.forEach((childSnapshot) => {
-        const recipe = childSnapshot.val();
-        if (recipe.category && recipe.category.includes(category)) {
-          recipesList.push({ ...recipe, key: childSnapshot.key });
-        }
-      });
-      setRecipes(recipesList);
-      setLoading(false);
-    }, { onlyOnce: true });
+    const unsubscribe = onValue(
+      recipesRef,
+      (snapshot) => {
+        const recipesList = [];
+        snapshot.forEach((childSnapshot) => {
+          const recipe = childSnapshot.val();
+          if (recipe.category && recipe.category.includes(category)) {
+            recipesList.push({ ...recipe, key: childSnapshot.key });
+          }
+        });
+        setRecipes(recipesList);
+        setLoading(false);
+      },
+      { onlyOnce: true }
+    );
     return () => unsubscribe();
   }, [category]);
 
@@ -79,8 +84,9 @@ const CategSearchResults = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#fff',
+    paddingVertical: 50,
+    paddingHorizontal: 20,
+    backgroundColor: Color.maroon,
   },
   centered: {
     flex: 1,
@@ -88,15 +94,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontFamily: FontFamily.archivoBlackRegular,
+    color: Color.white,
     marginBottom: 20,
     textAlign: 'center',
   },
   recipeItem: {
     flexDirection: 'row',
     marginBottom: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: 'white',
     padding: 10,
     borderRadius: 10,
   },
@@ -110,6 +117,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     alignSelf: 'center',
+    fontFamily: FontFamily.basicRegular,
+    fontWeight: 'bold',
+    color: Color.black,
   },
 });
 

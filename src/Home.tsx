@@ -232,7 +232,9 @@ const styles = StyleSheet.create({
   searchByIngredientsContainer: {
     top: 228,
     height: 130,
-    left: 13,
+    left: 15,
+    flexDirection: 'row', // Add this line
+    alignItems: 'center', // Add this line
   },
   searchIngredients: {
     left: 1,
@@ -255,6 +257,7 @@ const styles = StyleSheet.create({
     color: Color.darkGray,
     fontFamily: FontFamily.basicRegular,
     fontSize: 14.5,
+    right: 25,
   },
   rowOfIngredientsWrapper: {
     top: 39,

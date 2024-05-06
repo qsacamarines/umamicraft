@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Button } from 'react-native';
 import { useNavigation, NavigationProp, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { Color, FontFamily } from '../GlobalStyles';
 
 type RootStackParamList = {
   ViewAllIngredients: undefined;
@@ -51,22 +52,30 @@ const ViewAllIngredients = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={24} color="#000" />
+        <Ionicons name="arrow-back" size={24} color={Color.maroon} />
       </TouchableOpacity>
       <Text style={styles.header}>View All Ingredients</Text>
       <ScrollView contentContainerStyle={styles.ingredientsList}>
         {ingredients.map((item, index) => (
-          <TouchableOpacity key={index} style={[
-            styles.ingredientItem,
-            selectedIngredients.includes(item.name) ? styles.selected : null
-          ]} onPress={() => toggleIngredient(item.name)}>
-            <Image source={item.image} style={styles.ingredientImage} />
+          <TouchableOpacity
+            key={index}
+            style={styles.ingredientItem}
+            onPress={() => toggleIngredient(item.name)}
+          >
+            <View style={[
+              styles.imageContainer,
+              selectedIngredients.includes(item.name) ? styles.selected : null
+            ]}>
+              <Image source={item.image} style={styles.ingredientImage} />
+            </View>
             <Text style={styles.ingredientText}>{item.name}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
       {selectedIngredients.length > 0 && (
-        <Button title="Search with selected ingredients" onPress={handleSearch} />
+        <View style={styles.buttonContainer}>
+          <Button title="Search with selected ingredients" onPress={handleSearch} color={Color.maroon} />
+        </View>
       )}
     </View>
   );
@@ -75,19 +84,35 @@ const ViewAllIngredients = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.white,
     paddingTop: 50,
   },
   backButton: {
     marginLeft: 20,
     marginBottom: 20,
   },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    zIndex: 1,
+    borderRadius: 50,
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: Color.maroon,
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: FontFamily.archivoBlackRegular,
+  },
+  imageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+    borderColor: 'transparent', 
+    borderWidth: 3,
+    borderRadius: 50,
   },
   ingredientsList: {
     flexDirection: 'row',
@@ -96,36 +121,26 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   ingredientItem: {
-    width: 90,
-    height: 90,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 5,
-    borderRadius: 45,
-    backgroundColor: '#f0f0f0',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    margin: 4,
   },
   selected: {
-    borderColor: 'orange',
-    borderWidth: 2,
+    borderColor: Color.maroon,
+    borderWidth: 3,
+    borderRadius: 50,
   },
   ingredientImage: {
-    width: 50,
-    height: 50,
+    width: 80,
+    height: 80,
     borderRadius: 25,
   },
   ingredientText: {
     fontSize: 12,
     marginTop: 5,
     textAlign: 'center',
-    color: '#333',
+    color: Color.darkGray,
+    fontFamily: FontFamily.basicRegular,
   },
 });
 

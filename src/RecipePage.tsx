@@ -133,31 +133,28 @@ useEffect(() => {
 
   const renderItem = ({ item }: { item: Recipe }) => (
     <TouchableOpacity
-      style={styles.recipeCardContainer}
+      style={styles.recipeItem}
       onPress={() => handlePressRecipe(item)}
     >
-      <View style={styles.recipeCard}>
-        <Image style={styles.recipeImage} source={{ uri: item.image_url }} />
-        <View style={styles.recipeDetails}>
-          <Text style={styles.recipeName}>{item.name}</Text>
-          <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation();
-              handleFavorite(item);
-            }}
-            style={styles.favoriteButton}
-          >
-            <Ionicons
-              name={isFavorited(item.id) ? 'heart' : 'heart-outline'}
-              size={24}
-              color="maroon"
-            />
-          </TouchableOpacity>
-        </View>
+      <Image style={styles.recipeImage} source={{ uri: item.image_url }} />
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <Text style={styles.recipeName}>{item.name}</Text>
       </View>
+      <TouchableOpacity
+        onPress={(e) => {
+          e.stopPropagation();
+          handleFavorite(item);
+        }}
+        style={styles.favoriteButton}
+      >
+        <Ionicons
+          name={isFavorited(item.id) ? 'heart' : 'heart-outline'}
+          size={24}
+          color="maroon"
+        />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
-
  
   return (
     <View style={styles.container}>
@@ -181,6 +178,7 @@ useEffect(() => {
     backgroundColor: Color.maroon,
     paddingHorizontal: 20,
     paddingTop: 60,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 30,
@@ -188,56 +186,39 @@ useEffect(() => {
     color: Color.white,
     marginBottom: 20,
   },
+  recipeItem: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10,
+  },
+  recipeImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  recipeName: {
+    flex: 1,
+    fontSize: 18,
+    alignSelf: 'center',
+    fontFamily: FontFamily.basicRegular,
+    fontWeight: 'bold',
+    color: Color.black,
+  },
   recipeList: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     paddingBottom: 50, 
   },
-  recipeCardContainer: {
-    width: '68%', // Adjusted width for two columns
-    marginBottom: 20,
-  },
-  recipeCard: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 2.5,
-    },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-  },
-  recipeImage: {
-    width: "100%",
-    height: 150,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  recipeDetails: {
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  recipeName: {
-    fontFamily: FontFamily.basicRegular,
-    fontSize: 14,
-    fontWeight: "bold",
-    color: Color.black,
-    flex: 1,
-    marginRight: 8,
-  },
-  calorie: {
-    fontFamily: FontFamily.beVietnam,
-    fontSize: 12,
-    color: Color.black,
-  },
   favoriteButton: {
     marginLeft: 8,
   },
- });
+  recipeCardContainer: {
+    width: '98%', // Adjusted width for two columns
+  },
+});
  
  export default RecipesScreen;

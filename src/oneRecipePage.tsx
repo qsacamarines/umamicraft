@@ -6,6 +6,7 @@ import { database } from '../firebase';
 import { getFirestore, doc, onSnapshot, deleteDoc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { Color, FontFamily } from '../GlobalStyles';
 
 type RecipeNavigatorParamList = {
   OneRecipePage: { recipeId: string };
@@ -99,27 +100,27 @@ const OneRecipePage = () => {
   };
 
   if (!recipe) {
-    return <View><Text>Loading...</Text></View>;
+    return <View style={styles.loadingContainer}><Text style={styles.loadingText}>Loading...</Text></View>;
   }
 
   const { name, image_url, ingredients, instructions, category } = recipe;
 
   return (
-    <ScrollView>
+    <ScrollView style={styles.container}>
       {/* Navigation header */}
       <View style={styles.navigationHeader}>
         {/* Back button */}
-        <TouchableOpacity onPress={handleBackClick}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity onPress={handleBackClick} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={Color.white} />
         </TouchableOpacity>
         {/* Recipe name */}
         <Text style={styles.recipeName}>{name}</Text>
         {/* Heart icon */}
-        <TouchableOpacity onPress={handleHeartClick}>
+        <TouchableOpacity onPress={handleHeartClick} style={styles.heartButton}>
           <Ionicons
             name={isFavorited ? 'heart' : 'heart-outline'}
             size={24}
-            color="#fff"
+            color={Color.white}
           />
         </TouchableOpacity>
       </View>
@@ -132,14 +133,14 @@ const OneRecipePage = () => {
         {/* Categories */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categories:</Text>
-          <Text>{category.join(', ')}</Text>
+          <Text style={styles.sectionText}>{category.join(', ')}</Text>
         </View>
 
         {/* Ingredients */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ingredients:</Text>
           {ingredients.map((item, index) => (
-            <Text key={index}>{`${item.quantity} ${item.unit} ${item.ingredient}`}</Text>
+            <Text key={index} style={styles.sectionText}>{`${item.quantity} ${item.unit} ${item.ingredient}`}</Text>
           ))}
         </View>
 
@@ -147,7 +148,7 @@ const OneRecipePage = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Instructions:</Text>
           {instructions.map((item, index) => (
-            <Text key={index}>{`${index + 1}. ${item.instruction}`}</Text>
+            <Text key={index} style={styles.sectionText}>{`${index + 1}. ${item.instruction}`}</Text>
           ))}
         </View>
       </View>
@@ -192,15 +193,40 @@ const OneRecipePage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Color.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Color.white,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: FontFamily.basicRegular,
+    color: Color.maroon,
   },
   navigationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    backgroundColor: '#841D06', // Or your choice of header color
-    paddingTop: 10,
+    backgroundColor: Color.maroon,
+    paddingTop: 40,
+    paddingBottom: 10,
+  },
+  backButton: {
+    marginRight: 10,
+  },
+  recipeName: {
+    fontSize: 24,
+    fontFamily: FontFamily.archivoBlackRegular,
+    color: Color.white,
+    flex: 1,
+    textAlign: 'center',
+  },
+  heartButton: {
+    marginLeft: 10,
   },
   recipeImage: {
     width: '100%',
@@ -210,61 +236,60 @@ const styles = StyleSheet.create({
   details: {
     padding: 20,
   },
-  recipeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  recipeName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: FontFamily.archivoBlackRegular,
+    color: Color.maroon,
     marginBottom: 10,
   },
-  // Modal styles
+  sectionText: {
+    fontSize: 16,
+    fontFamily: FontFamily.basicRegular,
+    color: Color.darkGray,
+    lineHeight: 24,
+  },
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
   },
   modalView: {
     margin: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 20,
     padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5
+    elevation: 5,
   },
   buttonClose: {
-    backgroundColor: "#2196F3",
+    backgroundColor: Color.maroon,
     borderRadius: 20,
     padding: 10,
-    elevation: 2
+    elevation: 2,
   },
   textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: FontFamily.basicRegular,
   },
   modalText: {
     marginBottom: 15,
-    textAlign: "center"
-  }
+    textAlign: 'center',
+    fontFamily: FontFamily.basicRegular,
+    color: Color.maroon,
+  },
 });
 
 export default OneRecipePage;
